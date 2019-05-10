@@ -1,0 +1,12 @@
+     
+#安装并调用foreca：
+install.packages("forecast")
+library(forecast)
+#读取数据，构造时间序列：
+data<- read.csv("C:\\Users\\ASUS\\Desktop\\data.csv",header = TRUE)
+data<- data$data
+ts<- ts(data, start=c(2010,1), frequency=365)#ts函数当中，start可以选取时间单位，frequency表示单位里面个数，c（2010，1）表示2010年第一个单位起，但是该函数无法考虑闰年的问题#
+#模型定阶：
+mod<-auto.arima(ts)
+#利用模型进行预测：
+froecast_mod<- forecast(mod, h=365, fan=T)
