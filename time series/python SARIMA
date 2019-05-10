@@ -1,0 +1,95 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pylab as plt
+import itertools
+import warnings
+#定义ADF检验：
+def adf_test(ts):
+	from statsmodels.tsa.stattools import adfuller
+	ts.dropna(inplace=True)
+	stat,pvalue,N_lags,N_obs=adfuller(ts,autolag='AIC') [0:4]
+	print('test stat={ }, p-value={ }, #lags={ }, #obs={ }'.format(stat,pvalue, N_lags, N_obs))
+#定义ACF图和PACF图：
+from statsmodels.tsa.stattools import acf,pacf
+def ACF_PACF(ts,lag=20)
+	lag_pacf=pacf(ts,nlags=lag,method='ols')
+	lag_acf=acf(ts,nlags=lag)
+#画ACF：
+	plt.subplot(121)
+	plt.vlines(range(lag), [0], lag_acf, linewidth=5.0)
+	plt.plot(lag_acf)
+	plt.axhline(y=0,linestyle=':',color='blue')
+	plt.axhline(y=-1.96/np.sqrt(len(ts)), linestyle='--', color='red')
+	plt.axhline(y=1.96/np.sqrt(len(ts)), linestyle='--',color='red')
+	plt.title('ACF')
+#画PACF：
+	plt.subplot(122)
+	plt.vline(range(lag), [0], lag_pacf, linewitdth=5.0)
+	plt.plot(lag_pacf)
+	plt.axhline(y=0,linestyle=':', color='blue')
+	plt.axhline(y=-1.96/np.sqrt(len(ts),linestyle='--',color='red')
+	plt.axhline(y=1.96/np.sqrt(len(ts),linestyle='--',color='red')
+	plt.title('PACF')
+	plt.tight_layout()
+#导入数据并作线图：
+L=pd.read_ csv('E:/liji.csv')
+Lts=np.array(L[1:])
+dates=pd.date_range(start='2004-01',periods=132,freq='M')
+dates=np.array(dates)
+Lts=pd.Series(Lts,index=dates)
+plt.plot(Lts)
+plt.xlabel('time')
+plt.ylabel('Number of cases')
+plt.title('Number of diarrhea cases in Sichuan Province from 2004 to 2014')
+#对原数据作季节分解并对残差作ADF检验：
+from statsmodels.tsa.seasonal import seasonal_decompose
+	s=seasonal_decompose(Lts)
+	plt.plot(Lts. label='Diarrhea')
+	plt.plot(s.trend, label='trend')
+	plt.plot(s.seasonal, label='season')
+	plt.plot(s.resid,label='resid')
+	plt.legend(loc=2)
+	plt.title('Seasonal decomposition map')
+	adf_test(s.resid)
+	ACF_PACF(Lts)
+  #对原数据作一阶差分,消除趋势,并且作ADF检验，并且画出ACF,PACF:
+Lts_d1=Lts-lts.shift(1)
+adf.test(Lts_d1)
+ACF_PACF(Lts_d1)
+#得出p,r值后，进一步作季节差分，消除季节趋势,计算ADF，以及画出ACF和PACF：
+Lts_d2=Lts_d1-Lts_d1.shift(12)
+adf.test(Lts_d2)
+ACF_PACF(Lts_d2)
+#计算AIC和BIC，同时进行模型选择：
+p=range(0,5）
+d=range(1,1)
+q=range(0,5)
+P=range(0,5)
+D=range(1,1)
+Q=range(0,5)
+print("pdq:\n",pdq)
+pint("PDQ:\n",PDQ)
+import itertools
+pdq=list(itertools.product(p,d,q))
+PDQ=list(itertools.product(P,D,Q))
+pdq=[(x[0], x[1],  x[2]) for x in pdq]
+seasonal_PDQ=[x[0], x[1], x[2], 12) for x in PDQ]
+print('SARIMAX:{}x{}' .format(pdq[1],seasonal_PDQ[1]))
+for param in pdq:
+	for param_seasonal in seasonal_PDQ:
+	 	try:
+		      mod=sm.tsa.statespace.SARIMA(y,
+					       order=param,
+						seasonal_order=param_seasonal,
+						enforce_stationarity=False,
+						enforce_invertibility=False)
+		     results = mod.fit()
+		results=mod.fit()
+		print('SARIMA{}x{}12 - AIC:{} - BIC{}'. format(param, param_seasonal, results.aic, results.bic))
+	except:
+		continue
+    #利用模型进行预测：
+pred=results.predict('2013-01-31','2015-12-31')
+plt.plot(pred,'r--',label='prediction',linewidth=1)
+plt.plot(Lts['2007-01-31':],label='model')
+
