@@ -1,0 +1,6 @@
+libnanme test "E:\配书数据文\sas7bdat\ch6";/*划分逻辑库并且名为test*/
+  model Begin_Salary=Education Current_Salary Experience
+  selecton=sepwise sle=0.05 sls=0.05:/*slecetion表示对对自变量选择的方式，其中stepwise代表的是逐步回归的方式，sle表示选入模型的显著性水平，
+                                       sls表示的是将变量排除模型的显著性水平，我们通常将sle设定小于sls，这样的化排除的自变量便不会被再次纳入
+                                       进模型，即算法不会陷入一个循环*/
+run/*运行*/
