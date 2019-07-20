@@ -1,0 +1,7 @@
+libanme test "E\数据文件\sas7bdat\ch6";/*划分逻辑库*/
+proc reg data=test.Murder;/*调用reg回归程序包*/
+  Moddel Murder=ILLteracy;/*构建一元回归模型，即Murder是因变量，ILLteracy是自变量*/
+  plot r.*ILLteracy/*画出ILLteracy的残差的散点图，其中r.代表着残差*/
+  plot npp.*r.;/*画出 P-P 图*/
+  plot nqq.*r;/*画出Q-Q图，用以判断残差是否满足高斯马尔科夫条件*/
+run;/*运行*/
