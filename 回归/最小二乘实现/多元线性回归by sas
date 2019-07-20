@@ -4,3 +4,6 @@ libnanme test "E:\配书数据文\sas7bdat\ch6";/*划分逻辑库并且名为tes
                                        sls表示的是将变量排除模型的显著性水平，我们通常将sle设定小于sls，这样的化排除的自变量便不会被再次纳入
                                        进模型，即算法不会陷入一个循环*/
 run/*运行*/
+#当自变量中需要引入定性变量即哑变量时，我们可以在model步中加入哑变量，如性别Gender有0和1两个类别，那我们只需要在莫得了中引入Gender这一个变量即可，
+如果比如职位position，有0，1，2三个状态那我们需要引入position1和position2两个自变量，即model步可以改为：
+  model Begin_Salary= Gender Educaton Current_Salary Experience position1 position2
