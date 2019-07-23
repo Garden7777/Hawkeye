@@ -1,2 +1,9 @@
 #直方图是一种用来描述定量数据分布的图像#
 par(mfrow=c(2,2))#将一个平面划为2x2的四个平面#
+#简单直方图#
+hist(mtcars$mpg,main="简单直方图“）
+#简单直方图的颜色化#
+hist(mtcars$mpg,breaks=12,col="red",xlab="Miles",main="颜色化直方图")#breaks指代将定量变量进行12个分组#
+#在上述直方图添加轴须图和核密度曲线#
+rug(jitter(mtcars$mpg))#添加轴须图#
+lines(density(mtcars$mpg),col="yellow",lwd=2)#添加核密度曲线#
