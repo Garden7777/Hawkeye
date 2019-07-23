@@ -1,0 +1,15 @@
+#饼图也是用来描述分类变量的一种图形，其主要目的是为了向读者展示不同类别在总体的百分比，饼图的函数为pie#
+#首先绘制一个饼图的雏形#
+x11()
+par(mfrow=c(2,2))#将一个作图面划分为四个区域，将四张小图以2x2的形式进行陈列#
+slices<- c(10,12,4,16,8)#对每个类别的频数进行赋值#
+lbls<- c("US","UK","Australia","Germany","France")#对类别进行赋值#
+pie(slices,labels=lbls,main="饼图")#利用pie函数进行赋值#
+#为饼图添加一个比例#
+pct<- round(slices/sum(slices)*100)#计算各部分所占的百分比#
+lbls2<- paste(lbls,"", pct,"%",sep="")#创建一个新的标签#
+pie(slices,labels=lbls2,col=rainbow(length(lbls2)),main=“百分比饼图”)#rainbow为图形提供了五种颜色#
+#绘制3D饼图#
+install.packages("plotrix")
+library(plotrix)
+pie3D(slices,labels=lbls2,explode=0.1,main="3D饼图")
