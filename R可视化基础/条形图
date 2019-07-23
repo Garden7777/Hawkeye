@@ -1,0 +1,25 @@
+#条形图是描述统计当中常用的基本图形之一，条形图描述的是分类变量的分布情况，条形图中有一轴表示的是分类变量，另一轴所表示的是频数#
+x11()#设置出一个图形编辑页面#
+library(vcd)#调用vcd#
+attach(Arthritis)
+counts<- table(Improved)
+detach(Arthritis)
+counts#调用VCD中的数据集Arthritis,获得定性数据Improved中的数据，并且利用table函数对该定性变量进行计数#
+#简单条形图#
+barplot(counts,main="简单条形图"，xlab=“Improvement”，ylab="Frequency")
+#水平条形图#
+#水平条形图中实际上即横纵坐标翻转后的形式，此时，需要在barplot函数当中，将xlab与ylab进行修改，并且将horiz设定为TRUE即可#
+barplot(counts,main="水平条形图",xlab="Frequency",ylab="imprevement",horize=TRUE)
+#堆砌条形图#
+#首先对数据进行一个计数#
+counts<- table(Arthritis$Improved,Arthritis$Treatment)
+#利用barplot函数构建一个堆砌条形图#
+barplot(counts,main="堆砌条形图",xlab="Treatment",ylab="Frequency",col=c("red","yellow","green"),legend=rownames(counts))
+#分组条形图#
+barplot(counts,main="分组条形图",xlab="Treatment",ylab="Frequency",col=c("red","yellow","green"),legend=rownames(counts),beside=TRUE)
+#棘状图#
+#棘状图是一种特殊的条形图，在R语言中用spine函数实现#
+attach(Arthtritis)
+counts<- table(Treatment,Improved)
+spine(counts,main="棘状图")
+detach(Arthritis)
