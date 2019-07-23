@@ -9,7 +9,5 @@ pie(slices,labels=lbls,main="饼图")#利用pie函数进行赋值#
 pct<- round(slices/sum(slices)*100)#计算各部分所占的百分比#
 lbls2<- paste(lbls,"", pct,"%",sep="")#创建一个新的标签#
 pie(slices,labels=lbls2,col=rainbow(length(lbls2)),main=“百分比饼图”)#rainbow为图形提供了五种颜色#
-#绘制3D饼图#
-install.packages("plotrix")
-library(plotrix)
-pie3D(slices,labels=lbls2,explode=0.1,main="3D饼图")
+
+
