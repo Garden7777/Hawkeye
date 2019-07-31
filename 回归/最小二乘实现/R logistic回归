@@ -1,0 +1,11 @@
+#losgistic回归是一种针对因变量是二分类变量的回归模型，logistic在医学统计方面具有十分广泛的应用，logistic回归的目的往往并非是预测，而是用来作结构分析，因为作为回归模型估计出来的参数C，exp（C）等于流行病学中的OR值，可以表示出相对风险的大小，因而logistic回归在生物医学与卫生统计领域中十分受到欢迎#
+data<- read.csv("C:\\Users\\ASUS\\Desktop\\log1.csv")#读取csv数据#
+summary(data)#查看data的描述性统计的结果#
+model<- glm(y~x1+x2+x3+x4+x5+x6+x7,data=data,family=binomial())#glm函数可用来拟合广义线性模型，若family设定为binomial（）则为logistic模型，若是设定为possion（）则表示为模拟作泊松分布，值得注意的是在该函数的算法当中，采用的迭代次数的设定为设定为25，如果经过25次迭代计算之后仍然无法收敛，则会出waings message，显示算法没有聚合，此时口语调整算法的迭代次数control=list(maxit=100)，若数据的分布比较极端，则模拟出来的曲线则偏向于0或者1#
+coef(model)#查看模型的参数#
+exp(coef(model))#对参数进行指数化，从而能够得出OR值#
+exp(confint(model))#confint表示计算出模型参数的百分之九十五的置信区间#
+teatdata<- dataframe(x1=,x2=,x3=,x4=,x5=,x6=,x7=)#利用dataframe对新的自变量的值进行赋值#
+prob.result<- predict(model,newdata=testdata,type="response")#利用predict函数对得出的模型进行testdata的预测#
+deviance(model)/df.rediduasl(model)#计算出过度离势，如果过度离势偏离1，则数据分布偏离于二项分布，此时应当将family调整为“quasbinomial"#
+pchisq(summary(model.q)$dispersion*model$df.residual,df.residual,lower=F)#即对过度离势进行假设检验，此时H0为过度离势=1，model.q为将family调整为quasibinomial得出的模型#
