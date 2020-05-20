@@ -1,0 +1,84 @@
+marks<- c(10,6,4,7,8)
+marks[3]<- 0
+cat('第三个分数',marks[3],'\n')#'\n'表示各项输出自动空格，sep="表示各项之间不分隔#
+x<- numeric(4)
+mode(x)
+tnames<- c('王思明’，“John Kennedy")
+x<- c(1,NA,3)#NA表示缺失值#
+s<- c('王思明’，NA,'John Kennedy')
+marks[3:5]<-0
+marks<- c('李明‘=10，'张红艺'=6,'王思明’=4，‘张聪’=7，‘成功’=7)#也可以用name(masks)直接命名#
+names(masks)<- c(‘7’)
+fac<- factor(c('男','男','女','男'))#factor表示c向量中有几个水平，这里就是指男和女两个水平#
+fac
+sqrt(c(1,4,9))#开根号#
+#%int%表示集合运算当中的属于#
+（age>=18)&(age<=59)#&表示逻辑与#
+sex=='女'|'age<= 3#|表示逻辑或#
+！(age>=18)#!表示逻辑非#
+masks[masks<=5]#表示masks中小于等于5的元素#
+arr<- array(1:24,dim=c(2,3,4))
+M<- matrix(1:6,nrow=2,ncol=3)
+M<- matrix(1:6,nrow=2,ncol=3,byrow=TRUE)#byrow表示按行填充#
+colnames（M）<- c('x1','x2','x3')#给列命名#
+rownames(M)<- c('John','Mary')#行命名#
+crossprod(M)#表示M的转置乘以M#
+t(M)#表示M的转置#
+#if语句，如果x>0，则y<-1,否则y<- 0#
+if(x>0){
+  y<- -1
+}else{
+  y<-0
+}
+#如果x是一个向量#
+y<- numeric(legenth(x))
+y[x>0]<- 1
+#对x求和#
+x<- 11:15
+s<- 0
+for(k in seq(along=x)){
+  s<- s+x[k]
+  cat('k=',k,'x[k]=','s=',s,'\n')
+}
+#写函数#
+demean<- function(x,xbar=mean(x)){
+ x-xbar
+}
+demean(c(1,2,3))
+#尝试直接计算和列项计算#
+nmax<- 999
+exact<- 1- 1/(nmax+1)
+direct<- 0.0
+for(n in 1:nmax){
+  direct<- direct+1/(n*(n+1))
+}
+direct
+direct-0.999
+#对比直接计算和简化后计算#
+x<- 8
+y1<- 1-1/(1+exp(-x));sprintf("%20.16E",y1)
+y2<- 1/(1+exp(x));sprintf("%20.16E",y2)
+cat(sprintf("%20.16E",y1),"\n",sprintf("%20.16E",y2),"\n",seq="")
+#估计导数的误差#
+hvec<- 10^seq(-1,-20,by=-1)
+yp<- (exp(hvec)-1)/hvec-1.0
+plot(hvec,yp,xlab="h",main="估计导数的误差",ylab="误差",log="x")
+abline(h=0,col="gray",lty=3)
+cbind(hvec,yp)
+#次序解决计算问题#
+days<- 365
+nvec<- 1: days
+pvec<- numeric(days)
+pvec[1]<- 0
+for(n in 2:days){
+  pvec[n]<- 1- prod((365-(0:(n-1)))/365)
+}
+plot(nvec,pvec,main="n个人中存在生日同月日的概率",pch=16,cex=0.2,xlab="概率",ylim=c(0,1))
+#一元二次方程的稳定性问题#
+lhs<- function(z,x1,x2)z^2-x1*z+x2
+z1.1<- function(x1,x2)(x1+sqrt(x1^2-4*x2))/2
+z2.1<- function(x1,x2)(x1-sqrt(x1^2-4*x2))/2
+z2.2<- function(x1,x2)2*x2/(x1+sqrt(x1^2-4*x2))
+kapa<- function(x1,x2){
+  z1.1(x1,x2)/(z1.1(x1,x2)-z2.2(x1,x2))
+}
