@@ -1,0 +1,68 @@
+#平均值递推算法
+x[1]bar=x[1]
+for(k in 2:n){
+  x[k]=(k-1)*x[k-1]bar/k+(1/k)*x[k]
+}#
+mean.it<- function(x){
+  xm<-x[1]
+  for(k in seq(2,length(x))){
+    xm<- (k-1)/k*xm+x[k]/k
+  }
+  xm
+}
+set.seed(1)#测试#
+x<- round(runif(5),2)
+mean(x)
+mean.it(x)
+#求正太分布的众数模拟方法#
+sample.mode<- function(x){
+  tf<- table(x)
+  maxf<- max(x)
+  strmode<- names(tf)[tf==maxf]
+  if(length(strmode)<length(x)){
+    sort(as.numeric(strmode))
+  }else{
+   numeric(0)
+  }
+}
+set.seed(1)
+x<- round(rnorm(100,10,2),2)
+mean(x)
+median(x)
+sample.mode(x)
+#样本方差递推算法#
+#x[1]bar=x[1],S[1]^2=0
+for(k in 2:n){
+    s[k]^2=(k-2)*s[k-1]^2/(k-1)+(x[k]-x[k-1]bar)^2/k
+    x[k]bar=(k-1)x[k-1]bar/k+x[k]/k
+}
+#
+var.it<- function(x){
+  n<- length(x)
+  xm<- x[1]
+  ss<- 0
+  for(k in 2:n){
+  ss<- (k-2)/(k-1)*ss+(x[k]-xm)^2/k
+  xm<- (k-1)/k*xm+x[k]/k
+  }
+  ss
+}
+set.seed(1)
+x<- round(runif(5),2)
+var(x)
+var.it(x)
+#计算样本峰度和样本偏度#
+skewness<- function(x){
+  n<- length(x)
+  (n/(n-1)*n/(n-2))*
+    mean((x-mean(x))^3)/(var(x))^1.5
+}
+kurtosis<- function(x){
+  n<- length(x)
+  ((n+1)/(n-1)*n/(n-2)*n/(n-3))*
+  mean((x-mean(x))^4)/(var(x))^2-3*(n-1)^2/(n-2)/(n-3)
+}
+set.seed(1)
+x<- round(rnorm(10,10,2),2);x
+skewness(x)
+kurtosis(x)
