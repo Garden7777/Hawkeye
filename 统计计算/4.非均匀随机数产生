@@ -1,0 +1,9 @@
+#逆变换法生成离散型随机数#
+rng.discrete.uni<- function(n=1,m=2){
+  ceiling(m*runif(n))
+}#其中n是要生成的个数，m是离散分布的取值个数#
+rng.discrete.uni(60,m=6)
+#另外我们在R中可以用sample.int(m,size=n,replace=TRUE),从m个总体中有放回抽样地抽取n个#
+sample.int(6,size=60,replace=TRUE)
+#算法一，逆变换法取一般有限离散分布#
+rng.discrete.v1<- function(x,n=1)
