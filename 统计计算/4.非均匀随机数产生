@@ -6,4 +6,94 @@ rng.discrete.uni(60,m=6)
 #另外我们在R中可以用sample.int(m,size=n,replace=TRUE),从m个总体中有放回抽样地抽取n个#
 sample.int(6,size=60,replace=TRUE)
 #算法一，逆变换法取一般有限离散分布#
-rng.discrete.v1<- function(x,n=1)
+rng.discrete.v1<- function(x,n=1,prob=rep(1/length(x),length(x))){
+  m<- length(x)
+  y<- numeric(n)
+  Fvs<- c(0,cumsum(prob[-m]))
+  for(i in 1:n){
+  j<- max(which(Fvs<= runif(1)))
+  y[i]<- x[j]
+  }
+  y
+}
+x<- rng.discrete.v1(1:3,n=1000,prob=c(0.1,0.3,0.6))
+prop.table(table(x))*100
+#利用sample函数进行抽样#
+x<- sample(1:3,size=1000,replace=TRUE,prob=c(0.1,0.3,0.6))
+prop.table(table(x))
+#无放回抽样的实现#
+##构造一个1：n的随机随机序列##
+rpermu<- function(n){
+  x<- 1:n
+  for(k in n:2){
+  U<- runif(1)
+  I<- ceiling(k*U)
+  tmp<- x[k];x[k]<- x[I];X[I]<- tmp
+  }
+  
+  x
+}
+rpermu(10)
+##另上面的程序循环r次，即可得无放回抽样的样本r个##
+rpermu<- function(n,size=n){
+  x<- 1:n
+  for(k in n:(n-size+2)){
+    U<- runif(1)
+    I<- ceiling(k*U)
+    tmp<- x[k];x[k]<- x[I];x[I]<- tmp
+  }
+  
+  
+  x[(n-size+1):n]  
+}
+rpermu(10,size=5)
+#sample.int可以是实现随机排列，也可以实现无放回抽样#
+sample.int(10)
+sample.int(10,size=5)
+#逆变换法求几何分布的随机数#
+##n为需要输出的个数，p表示成功概率##
+rng.geom<- function(n=1,p=0.5){
+  ceiling(log(runif(n)))/log(1-p)
+}
+x<- rng.geom(1000,p=0.1)
+mean(x)
+#利用几何分布生成独立试验序列#
+rbernoulli.geom<- function(sze=1,prob=0.6){
+  x<- numeric(size)
+  k<- 0
+  while(k<= size){
+    T<- rgeom(1,prob=prob)
+    if(T>1){
+      x[(k+1):(min(c(k+T-1,size)))]<-0
+    }
+    if(k+T<=size) x[k+T]<- 1
+    k<- k+T
+  }
+  
+  
+  X
+}
+x<- rbernoulli.geom(size=1000,prob=0.1)
+prop.table(table(x))*100
+#逆变换法生成二项分布随机数#
+##n为输出的个数，非二项分布参数##
+##size为二项分布参数当中的试验次数##
+rbinom.v1<- function(n,size=,prob=0.5){
+  x<- numeric(n)
+  for(i in 1:n){
+  U<- runif(1)
+  k<- 0
+  cc<- prob/(1-prob)
+  a<- (1-prob)^size
+  F<- a
+  while(U>F){
+    a<- a*cc*(size-k)/(k+1)
+    F<- F+a
+    k<- k+1
+  }
+  x[i]<- k
+  }
+  
+  
+  x
+}
