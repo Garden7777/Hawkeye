@@ -97,3 +97,28 @@ rbinom.v1<- function(n,size=,prob=0.5){
   
   x
 }
+x<- rbinom.v1(n=10000,size=10,prob=0.3)
+round(prop.table(table(x))*100)
+#利用逆变换法求泊松分布的随机数#
+##n表示需要输出的个数，非参数，lambda表示泊松分布的速率参数##
+rpois.v1<- function(n,lambda=1){
+  x<- numeric(n)
+  for(i in 1:n){
+  U<- runif(1)
+  p<- exp(-lambda)
+  F<- p
+  k<- 0
+  while(U>F){
+    p<- p*lambda/（k+1)
+    F<- F+P
+    K<- K+1
+  }
+  X[i]<- k
+  }
+  
+  
+  x
+}
+x<- rpois.v1(n=1000,lambda=3)
+round(prop.table(table(x))*100)
+round(dpois(0:10,lambda=3)*100)
