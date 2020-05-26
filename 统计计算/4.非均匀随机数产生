@@ -122,3 +122,116 @@ rpois.v1<- function(n,lambda=1){
 x<- rpois.v1(n=1000,lambda=3)
 round(prop.table(table(x))*100)
 round(dpois(0:10,lambda=3)*100)
+#逆变换法求三角形分布#
+##标准右三角形的随机数##
+rng.rtri<- function(n){
+  sqrt(runif(n))
+}
+x<- rng.rtri(1000)
+hist(x,freq=FALSE)
+curve(2*x,0,1,col="red",add=TRUE)
+##标准左三角形分布的随机数##
+rng.ltri<- function(n){
+  1-sqrt(runif(n))
+}
+x<- rng.ltri(1000)
+hist(x,freq=FALSE)
+curve(2*(1-x),0,1,col="red",add=TRUE)
+##标准三角形分布的随机数##
+rng.tri<- function(n,m){
+  u<- runif(n)
+  ifelse(u<=m,sqrt(m*u),1-sqrt((1-m)*(1-u)))
+}
+m<- 0.3
+x<- rng.tri(1000,m)
+hist(x,freq=FALSE,ylim=c(0,2))
+curve(ifelse(x<m,2/m*x,2/(1-m)*(1-x)),0,1,col="red",add=TRUE)
+##逆变换法求指数分布的随机数####R已经提供了rexp函数##
+rng.exp<- function(n,rate=1){
+  -log(runif(n))/rate
+}
+x<- rng.exp(1000,2)
+hist(x,freq=FALSE)
+curve(2*exp(-2*x),0,10,col="red",add=TRUE)
+##利用指数分布随机产生泊松随机数##
+rng.possion.byexp<- function(n,rate=1){
+  x<- numeric(n)
+  a<- exp(-rate)
+  for(i in 1:n){
+    p<- 1
+    k<- 0
+    repeat{
+      k<- k+1
+      p<- p*runif(1)
+      if(p<a) break
+    }
+    x[i]<- k-1
+  }
+  
+  x
+}
+x<- rng.possion.byexp(1000,rate=2)
+round(prop.table(table(x))*100)
+rbind(0:10,round(dpois(0:10,lambda=2)*100))
+#用Box-Muller变换生成正态随机数#
+rng.normbm<- function(n,mu,sigma){
+  n2<- ceiling(n/2);nn<- 2*n2
+  amp<- sqrt(-2*log(runif(n2)))
+  ang<- 2*pi*runif(n2)
+  mu+sigma*c(amp*cos(ang),amp*sin(ang))[1:n]
+}
+x<- rng.normbm(1001,10,2)
+str(x)
+hist(x,freq=FALSE)
+curve(dnorm(x,10,2),4,16,col="red",add=TRUE)
+#舍选法#
+##算法描述##
+###舍选法1###
+####until(Y<=p(x)){
+          从U(0,1)中抽取U1,U2
+          取X=a+(b-a)*U1,Y=M*U2
+}
+输出Z=X####
+###舍选法2###
+####until(Y<=P(X)/(cg(X)){
+        从g（x）中抽取X
+        从U（0，1）中抽取Y
+}
+输出Z=X####
+##利用舍选法1生成Beta（2，4）的随机数##
+rng.beta24<- function(n){
+  xvec<- numeric(n)
+  for(i in 1:n){
+    repeat{
+      U1<- runif(1)
+      U2<- runif(1)
+      x<- U1
+      Y<- 135/64*U2
+      if(Y<= 20*x*(1-x)^3) break
+    }
+    xvec[i]<- x
+  }
+  
+  xvec
+}
+x<- rng.beta24(1000)
+hist(x,freq=FALSE,ylim=c(0,2.5))
+curve(dbeta(x,2,4),0,1,col="red",add=TRUE)
+###针对上述问题R已经提供了rbeta函数###
+##用舍选法2生成Gamma（3/2，1）随机数##
+rng.gamma321<- function(n){
+  xvec<- numeric(n)
+  a<- sqrt(2*exp(1)/3)
+  for(i in seq(along=xvec)){
+    repeat{
+      X<- -1.5*log(runif(1))
+      Y<- runif(1)
+      if(Y<=a*sqrt(X)*exp(-1/3*X))break
+    }
+    xvec[i]<-X
+  }
+  xvec
+}
+x<- rng.gamma321(1000)
+hist(x,freq=FALSE,ylim=c(0,0.7))
+curve(dgamma(x,shape=1.5,rate=1),0,10,col="red",add=TRUE)
