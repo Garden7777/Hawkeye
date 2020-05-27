@@ -235,3 +235,39 @@ rng.gamma321<- function(n){
 x<- rng.gamma321(1000)
 hist(x,freq=FALSE,ylim=c(0,0.7))
 curve(dgamma(x,shape=1.5,rate=1),0,10,col="red",add=TRUE)
+#复合法#
+##复合法求离散型随机分布##
+rng.dismix2218<- function(n){
+  xvec<- numeric(n)
+  for(i in seq(along=xvec)){
+    U1<- runif(1)
+    U2<- runif(1)
+    if(U1<- 0.75){
+      xvec[i]<- ceiling(5*U2)+5
+    }else{
+      xvec[i]<- ceiling(5*U2)
+    }
+  }
+  
+  xvec
+}
+x<- rng.dismix2218(10000)
+round(prop.table(table(x))*100)
+##复合法求梯形分布随机数##
+rng.ladd<- function(n=1,a=0.5){
+  xvec<- numeric(n)
+  for(i in seq(along=xvec)){
+    U1<- runif(1)
+    if(U1<a){
+      xvec[i]<- runif(1)
+    }else{
+      xvec[i]<- sqrt(runif(1))
+    }
+    }
+    
+    xvec
+  }
+a<- 0.3
+x<- rng.ladd(10000,a=a)
+hist(x,freq=FALSE)
+curve(a+2*(1-a)*x,0,1,col="red",add=TRUE)
