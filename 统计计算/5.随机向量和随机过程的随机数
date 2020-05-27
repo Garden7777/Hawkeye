@@ -1,0 +1,32 @@
+#多项分布随机数的模拟#
+rng.multinonm<- function(n,m,prob){
+  r<- length(prob)
+  pcum<- c(0,cumsum(prob))
+  xmat<- matrix(0,n,r)
+  for(i in seq(n)){
+    m1<- m
+    for(i in seq(n)){
+      xmat[i,k]<- rbinom(1,m1,prob[k]/(1-pcum[k]))
+      m1<- m1-xmat[i,k]
+    }
+    xmat[i,r]<- m1
+  }
+  
+  xmat
+  }
+#多元正态分布模拟#
+##n是需要的个数##
+##mu是均值向量##
+##sigma是协方差阵，需要的是正对称正定阵##
+rng.mnorm<- function(n,mu,sigma){
+  m<- length(mu)
+  M<- chol(sigma)###sigma可以做Cholesky分解###
+  y<- matrix(rnorm(n*m),n,m)%*%M
+  for(j in seq(along=mu)){
+    y[,j]<- y[,j]+mu[j]
+  }
+  y
+}
+x<- rng.mnorm(1000,c(3,2),rbind(c(4,1),c(1,1)))
+plot(x[,1],x[,2],type = "p",cex=0.1)
+abline(v=3,h=2,col="green")
