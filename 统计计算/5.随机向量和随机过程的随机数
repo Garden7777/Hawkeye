@@ -30,3 +30,85 @@ rng.mnorm<- function(n,mu,sigma){
 x<- rng.mnorm(1000,c(3,2),rbind(c(4,1),c(1,1)))
 plot(x[,1],x[,2],type = "p",cex=0.1)
 abline(v=3,h=2,col="green")
+#泊松分布的模拟#
+rng.poisproc<- function(T=100,lambda=1){
+  nmax<- max(c(100,round(2*T*lambda)))
+  xvec<- numeric(nmax)#用来保存事件到来时刻#
+  s<- 0#当前时刻
+  nev<- 0#已经发生事件个数
+  repeat{
+    x<- -log(runif(1))/lambda
+    s<- s+x
+    if(s<=T){
+      nev<- nev+1
+      xvec[nev]<- s
+      if(nev==nmax){#需要扩大存储空间
+        xvec<- c(xvec,numeric(max))
+        nmax<- nmax*2
+              }
+    }else{
+      break
+    }
+  }
+  xvec[1:nev]
+}
+T<- 100
+lambda<- 0.5
+x<- rng.poisproc(T,lambda)
+plot(c(0,T),c(0,1),type="n",xlab = "time",ylab = "")
+abline(v=x,col="red")
+#平稳时间序列的模拟#
+##n:输出的序列长度
+##a:自回归系数
+##sigma：新息项的标准差
+##n0，需要舍弃的初始部分
+ar.gen.vq<-function(n,a,sigma=1.0,n0=1000){
+  n2<- n0+n
+  p<- length(a)
+  arev<- rev(a)
+  x2<- numeric(n2)
+  eps<- rnorm(n2,0,sigma)
+  for(tt in seq(p+1,n2)){
+    x2[tt]<- eps[tt]+sum(x2[(tt-p):(tt-1)*arev])
+  }
+  x<- x2[(n0+1):n2]
+  x<- ts(x)
+  attr(x,"model")<- "AR"
+  attr(x,"a")<- a
+  attr(x,"sigma")<- sigma
+  
+  x
+}
+x<- ar.gen.vq(100,c(0.5),sigma=2)
+plot(x)
+pacf(x)
+#对于MA模型
+ma.gen<- function(n,a,sigma=1.0){
+  q<-length(a)
+  n2<-n+q
+  eps<- rnorm(n2,0,sigma)
+  x2<- filter(eps,c(1,a),method ="convolution",side=1)
+  x<- x2[(q+1):n2]
+  x<- ts(x)
+  attr(x,"model")<- "MA"
+  attr(x,"b")<- a
+  attr(x,"sigma")<- sigma
+  x
+}
+x<- ma.gen(100,c(0.5),sigma=2)
+plot(x)
+#模拟arma模型
+arma.gen<- function(n,a,b,sigma=1.0
+                    n0=1000,x0=numeric(length(a))){
+  n2<- n0+n
+  p<- length(a)
+  eps<- ma.gen(n2,b,sigma=sigma,by.roots=by.roots.ma,plot.it=FALSE)
+  x2<- filter(eps,a,method="recursive",side=1,init = x0)
+  x<- x2[(n0+1):n2]
+  x<- ts(x)
+  attr(x,"model")<- "ARMA"
+  attr(x,"a")<- a
+  attr(x,"b")<- b
+  attr(x,"sigma")<- sigma
+  x
+}
