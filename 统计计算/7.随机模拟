@@ -1,0 +1,19 @@
+#用随机模拟估计圆周率
+sim.pi<- function(N=10000){
+  x<- runif(N,-1,1)
+  y<- runif(N,-1,1)
+  p<- mean((x^2+y^2)<=1)
+  pi.hat<- 4*p
+  pi.hat
+}
+sim.pi(100000)
+#计算上述过程的随机模拟误差
+NN<- 10^(2:6)
+xmat<- matrix(0,length(NN),3)
+xmat[,1]<- NN
+colnames(mat)<- c("N","随机模拟误差"，"95%误差界")
+for (i in seq(nrow(xmat))){
+  xmat[i,"随机模拟误差"]<- sim.pi(NN[i])-pi
+  xmat[i,"95%误差界"]<- 2*sqrt(pi*(4-pi)/NN[i])
+}
+xmat
