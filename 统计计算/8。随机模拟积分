@@ -1,0 +1,32 @@
+#用随机模拟估计圆周率
+sim.pi<- function(N=10000){
+  x<- runif(N,-1,1)
+  y<- runif(N,-1,1)
+  p<- mean((x^2+y^2)<=1)
+  pi.hat<- 4*p
+  pi.hat
+}
+sim.pi(100000)
+#计算上述过程的随机模拟误差
+NN<- 10^(2:6)
+xmat<- matrix(0,length(NN),3)
+xmat[,1]<- NN
+colnames(mat)<- c("N","随机模拟误差"，"95%误差界")
+for (i in seq(nrow(xmat))){
+  xmat[i,"随机模拟误差"]<- sim.pi(NN[i])-pi
+  xmat[i,"95%误差界"]<- 2*sqrt(pi*(4-pi)/NN[i])
+}
+xmat
+#设X~N(0,1),求I=E|X|^(3/2)
+set.seed(1)
+I.true<- 2^(3/4)*gamma(5/4)/sqrt(pi)
+I.true#求出I.true的积分计算值
+N<- 10000
+yvec<- abs(rnorm(N))^1.5
+I.hat<- mean(yvec)
+I.hat
+sd.hat<- sd(yvec)
+sd.hat
+I.true-I.hat#计算误差
+#在R中亦可以用integrate(function(x)x^1.5*dnorm(x),0,Inf)计算积分值
+#随机模拟估计误差的评估与样本量计算
