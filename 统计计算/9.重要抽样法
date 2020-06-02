@@ -1,0 +1,105 @@
+#舍选法算法
+##for(i in i:N){
+  repeat{
+    从g（.)中抽取a[i]
+    计算W[i]=f(a[i])/g(a[i])
+    if(w[i]>=c){
+      令X[i]=a[i],w*[i]=p[c]w[i]
+      break
+    }else{
+      从U(0,1)抽取U
+      if(U<w[i]/c){
+        令x[i]=a[i],w*[i]=p[c]c
+        break
+      }
+    }
+  }
+}
+输出（x*[i],w*[i])##
+##利用重要抽样法计算积分
+I.true<- exp(1)-1#计算积分真值
+I.true
+set.seed(1)
+N<- 10000
+Ginv<- function(y){sqrt(1+3*y)-1}
+x<- Ginv(runif(N))
+eta<- exp(x)/(2/3*(1+x))
+I3<- mean(eta)
+var3<- var(eta)
+#利用随机投点法计算上述积分
+set.seed(1)
+N<- 10000
+phat<- mean(runif(N)<= exp(runif(N)-1))
+I1<- phat*exp(1)
+var1<- exp(2)*phat*(1-phat)
+#计算二重积分
+f<- function(x,y){
+  exp(-45*(x+0.4)^2-60*(y-0.5)^2)+0.5*exp(-90*(x-50)^2-45*(y+0.1)^4)
+}#将目标函数写成R函数
+#用平均值法，取点数N=10000
+N<- 10000
+set.seed(1)
+x<- runif(N,-1,1)
+y<- runif(N,-1,1)
+eta<- f(x,y)
+I2<- 4*mean(eta)
+sd2<- 4*sd(eta)
+c1<- sqrt(2*pi/90*2*pi/120)+0.5*sqrt(2*pi/180*2*pi/20)
+pmix<- sqrt(2*pi/90*2*pi/120)/c1
+N<- 10000
+g<- function(x,y){
+  0.5358984*dnorm(x,-0.4,sqrt(1/90))*dnorm(y,0.5,sqrt(1/120))+
+  0.4641016*dnorm(x,0.5,sqrt(1/180))*dnorm(y,-0.1,sqrt(1/20))
+}
+set.seed(1)
+N1<- round(N*pmix)
+N2<- N-N1
+x<- c(rnorm(N1,-0.4,sqrt(1/90)),rnorm(N2,0.5,sqrt(1/180)))
+y<- c(rnorm(N1,0.5,sqrt(1/120)),rnorm(N2,-0.1,sqrt(1/20)))
+eta<- ifelse(-1<x&x<1&-1<y&y<1,f(x,y)/g(x,y),0)
+I3<- mean(eta)
+sd3<- sd(eta)
+#标准化的重要抽样法在贝叶斯推断当中的重要作用
+dbetabin<- function(y,n,k,eta){
+  choose(n,y)*beta(k*eta+y,k*(1-eta)+n-y)/beta(k*eta,k*(1-eta))
+}
+p.post<- function(a,b){
+  k<- exp(a)
+  eta<- 1/(1+exp(-b))
+  val<-k/(1+k)^2
+  beta0<-beta(k*eta,k*(1-eta))
+  for(j in seq(n)){
+    val<- val*beta(k*eta+yarr[j],k*(1-eta)+narr[j]-yarr[j])/beta0
+  }
+  val[beta0==0]<-0
+  val
+}
+#模拟方法生成观测样本
+set.seed(1)
+k.true<-10
+eta.true<-0.2
+narr<- c(20,30,25,30,40,20,50,30,20,20)
+n<- length(narr)
+yarr<- numeric(n)
+for(j in seq(n)){
+  parr<- dbetabin(seq(0,narr[j]),narr[j],k.true,eta.true)
+  yarr[j]<-sample(seq(0,narr[j]),size=1,prob=parr,replace=TRUE)
+}
+rbind(narr,yarr)
+#用标准化的重要抽样法估计后验均值
+set.seed(1)
+N<- 10000
+df.t<- 4
+alpha.samp<- rt(N,df.t)
+beta.samp<- rt(N,df.t)
+wei<- p.post(alpha.samp,beta.samp)/dt(alpha.samp,df.t)/dt(beta.samp,df.t)
+est<- sum(alpha.samp*wei)/sum(wei)
+log(k.true)
+boxplot(wei)
+#舍选控制
+quantile(wei,c(0.5,0.75,0.8,0.85,0.9,0.95,0.99))
+wei.cut<- unname(quantile(wei,0.90))
+summary(wei.cut)
+#关于后验密度适当加权
+est.new<- sum(alpha.samp[i.keep]*wei.new)/sum(wei.new)
+est.new
