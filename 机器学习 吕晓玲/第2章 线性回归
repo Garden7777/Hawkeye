@@ -1,0 +1,83 @@
+#糖尿病数据
+#1.数据来源，来源于lars包中的diabetes，其中有两个数据矩阵，x和x2，其中x2包括前者和
+#一些交互作用，分析x2
+#2.描述统计
+library(lars)
+data(diabetes)
+attach(diabetes)
+kappa(x2)#计算得出条件数为11427.09说明多重共线性非常严重
+#最小二乘方法和逐步回归
+model.step<- step(lm(y~x2))#建立逐步回归方程
+Summary(model.step)
+plot(model.step$fit,model.step$res)
+abline(h=0,lty=2)
+shapiro.test(model.step$res)
+#采用岭回归方法进行，用MASS包中的lm.ridge
+library(MASS)
+ridgelm<- lm.ridge(y[1:442]~.,data=x2)
+plot(lm.ridge(y[1:442]~.,data=x2,lambda = seq(0,10,1)))#画出岭迹图
+select(lm.ridge(y[1:442]~.,data=x2,lambda = seq(0,10,1)))#选择岭回归参数
+#lasso回归
+#lasso回归采用的lars函数进行操作
+model.lasso<- lars(x2,y[1:442])
+plot(model.lasso)
+cv.model.lasso<- cv.lars(x2,y[1:442],K=10)#十折交叉验证
+n.cp<- which.min(model.lasso$Cp)#利用Cp准则选择模型
+coef1<- coef.lars(model.lasso,model="step",s=n.cp)
+coef1[which(coef1!=0)]
+#适应性lasso回归
+#适应性lasso惩罚项是系数绝对值的加权平均，程序包为msgps
+library(msgps)
+model.alasso<- msgps(x2,as.vector(y[1:442]),penalty="alasso",gamma=1,lambda=0)
+summary(model.alasso)
+plot(model.alasso)
+#恩格尔数据
+#描述统计
+install.packages("quantreg")
+library(quantreg)
+data(engel)
+par(mfrow=c(1,2))
+boxplot(engel)
+plot(engel)
+#分位回归
+Rq.model<- rq(foodexp~income,tau=1:49/50,data=engel)
+plot(summary(Rq.model))
+par<- par(mfrow=c(1,2))
+plot(foodexp~income,data=engel,main="engel data")
+taus<- c(.15,.25,.50,.75,.95,.99)
+rqs=as.list(taus)
+for(i in seq(along=taus)){
+  rqs[[i]]=rq(foodexp~income,tau=taus[i],data=engel)
+  lines(engel$income,fitted(rqs[[i]]),lty=i)#画出各分位点的预测线
+}
+legend("bottomright",cex=0.5,paste("tau=",taus),inset = 0.04,lty=1:(length(taus)))
+#因为点的分布较为分散，故采用log10(x)进行对数变换
+plot(log10(foodexp)~log10(income),data=engel,main="engel data(log10 transformed)")
+taus<- c(.15,.25,.50,.75,.95,.99)
+rqs<- as.list(taus)
+for (i in seq(along=taus)) {
+  rqs[[i]]=rq(log10(foodexp)~log10(income),tau=taus[i],data=engel)
+  lines(log10(engel$income),fitted(rqs[i]),col=i+1)
+}
+legend("bottomright",cex=0.5,paste("tau=",taus),inset = 0.04,col=2:(length(taus)+1),lty=1)
+#比较穷人（收入在5%）和富人（收入在95%）对不同分位数（各个tau的取值）的预测值
+#的回归的拟合，模拟出穷人和富人的消费分布
+attach(engel)
+z=rq(foodexp~income,tau=-1,engel)#rq函数中，tau不在【0.1】中，按最细分位点划分
+x.poor<- quantile(income,.05)
+x.rich<- quantile(income,.95)
+qs.poor<- c(c(1,x.poor)%*%z$sol[4:5,])#计算0.05对应的预测值
+qs.rich<- c(c(1,x.rich)%*%z$sol[4:5,])
+ps<- z$sol[1,]#取tau的值为ps
+ps.wts<- (c(0,diff(ps))+c(diff(ps),0))/2
+ap<- akj(qs.poor,z=qs.poor,p=ps.wts)#得到qs.poor预测值的核密度估计
+ar<- akj(qs.rich,z=qs.rich,p=ps.wts)#得到qs.rich预测值的核密度估计
+par(mfrow=c(1,2))
+plot(c(ps,ps),c(qs.poor,qs.rich),type="n",xlab=expression(tau),ylab="foodexp")
+plot(stepfun(ps,c(qs.poor[1],qs.poor)),do.points=F,add=T)
+plot(stepfun(ps,c(qs.rich[1],qs.rich)),do.points=F,add=T,lty=2)
+legend("topleft",c("poor","rich"),lty=c(1,2))#做出两个分位点对不同分位数的预测值图像
+plot(c(qs.poor,qs.rich),c(ap$dens,ar$dens),type="n",xlab="Food penditure",ylab="density")
+lines(qs.poor,ap$dens)
+lines(qs.rich,ar$dens,lty=2)
+legend("topright",c("poor","rich"),lty=c(1,2))
