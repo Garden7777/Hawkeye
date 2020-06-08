@@ -1,0 +1,46 @@
+#数据说明
+#所用数据为glmpath中的数据集heart。data，为462个南非人的身体健康状况指标
+#原书数据有误，因变量并非二分类
+#描述统计
+install.packages("glmpath")
+library(glmpath)
+data(heart.data)
+attach(heart.data)
+data<- data.frame(cbind(as.matrix(heart.data$x),y))#转换成数据框
+windowsFonts(
+A=windowsFont("Times New Roman"),
+B=windowsFont("Arial Black"))
+par(family="A")
+pairs(data)#散点矩阵图
+attach(data)
+w1<- xtabs(~y+famhist)#在数据集中y并非二分类的形式，所以无法做卡方检验，为书误
+W1
+chisq.test(w1)
+#画箱线图
+par(mfrow=c(1,4),family="A")
+boxplot(sbp~y,main=sbp)
+#logistic回归
+set.seed(9)#设定随机种子，数字可任取
+n=nrow(data)
+ss<- sample(n,n*0.8,replace = FALSE)
+datatr<- data[ss,]#随机抽取80%作为训练集
+datate<- data[-ss,]#剩余20%作为测试集
+logit=glm(y~.,data=datatr,family=binomial)
+summary(logit)
+AIC<- step(logit,trace=0)#逐步回归
+summary(AIC)
+BIC<- step(logit,k=log(n),trace=0)#BIC逐步回归
+summary(BIC)
+attach(datate)
+p1<- matrix(0,length(datate[,1],3))#构造一个矩阵,分别用来放三个预测值
+p1[,1]<- predict(logit,datate)
+p1[,2]<- predict(AIC,datate)
+p1[,3]<- predict(BIC,datate)
+p1<- exp(p1)/(1+exp(p1))#计算概率值
+p=as.data.frame(p1)
+names=c("logit","AIC","BIC")
+y.ture<- datete$y
+p0<- 0.3
+prob<- p[,1]
+y.hat<- 1*(prob>p0)
+right<- 1-mean(y.true!=y.hat)
