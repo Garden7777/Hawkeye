@@ -1,0 +1,107 @@
+#模型评价
+#数据说明
+#5000个服从标准正态分布的连续型揭示变量
+#生成数据
+library(MASS)
+nq<- 5000
+Q<- matrix(0,50,nq)
+for(i in 1:nq){Q[,i]<- rnorm(50)}
+N1<- rep(0,25)
+N2<- rep(1,25)
+N<- c(N1,N2)
+N<- sample(N)
+###挑选出最相关的变量
+nc<- 100
+b<- rep(0,nq)
+for(i in 1:nq){b[i]<- cor(Q[,i],N)}
+max<- order(b,decreasing = TRUE)[1:nc]
+###用1-近邻分类模拟50次
+library(class)
+mydata<- data.frame(cbind(N,Q[,max]))
+N<- mydata$N
+tt<- matrix(1:50,nrow=5,ncol = 10,byrow = TRUE)
+cv.error<- rep(0,50)
+cv.true<- rep(0,5)
+final.cv<- rep(0,50)
+final.corr<- array(0,c(nc,5,50))
+for(t in 1:50){ #模拟50次
+  mydata<- mydata[sample(nrow(mydata)),]
+for(j in 1:5){ #5折交叉验证
+  test_row<- tt[j,]
+  train<- mydata[-test_row,]
+  test<- mydata[test_row,]
+  knn.pred<- knn(train,test,train$N,k=1)
+  cv.true[j]<- mean(knn.pred==mydata[test_row,]$N)
+  for(k in 1:nc){
+  final.corr[k,j,t]<- cor(test$N,test[,k+1])
+  }
+}
+final.cv[t]<- mean(cv.true)
+}
+1-mean(final.cv)#通过交叉验证计算平均误差
+mean(final.corr)#计算相关系数
+hist(final.corr,breaks = 8,main="Wrong way",xlab="Correlations of
+     selected Predictors with outcome")
+mydata<- data.frame(cbind(N,Q))#N,Q仍为上述生成的数据
+N<- mydata$N
+tt<- matrix(1:50,nrow = 5,ncol=10,byrow=TRUE)
+b<- rep(0,nq)
+cv.true<- rep(0,5)
+final.cv<- rep(0,50)
+final.corr<- array(0,c(nc,5,50))
+for(t in 1：50){
+  mydata<- mydata[sample(nrow(mydata)),]
+for(j in 1:5){
+  test_row<- tt[j,]
+  for (i in 1:nq) {
+    b[i]<- cor(Q[-test_row,i],N[-test_row])
+  }
+  max<- order(b,decreasing = TRUE)[1:nc]
+  max<- max+1
+  newdata<- cbind(N,mydata[,max])
+  train<- newdata[-test_row,]
+  test<- newdata[test_row,]
+  knn.pred<- knn(train,test,train$N,k=1)
+  cv.true[j]<- mean(knn.pred==test$N)
+  for(k in 1:nc){
+    final.corr[k,j,t]<- cor(test$N,test[,k+1])
+  }
+}#用交叉验证法选取变量
+  final.cv[t]<- mean(cv.true)
+}
+1-mean(final.cv)#计算平均误差和相关系数
+mean(final.corr)
+hist(final.corr,breaks = 8,main="right way",xlab = "correlation of 
+     selected predictions with outcome")
+#模拟研究2
+#数据说明
+#本例研究交叉验证方法在高维问题上的表现
+#生成数据
+library(class)
+library(MASS)
+library(tree)
+nq<- 500
+Q<- matrix(0,20,nq)
+for (i in 1:nq) {
+  Q[,i]<- rnorm(20) 
+  }
+N1<- rep("no",10)
+N2<- rep("yes",10)
+N<- c(N1,N2)
+#交叉验证
+set.seed(9)
+N<- sample(N)
+err.rate1<- rep(0,500)
+#i=83
+for (i in 1:nq) {
+  subdata<- data.frame(cbind(N,Q[,i]),stringsAsFactors = F)
+  subdata$N<- as.factor(subdata$N)
+  tree.simul<- tree(N~.,subdata)
+  err.rate1[i]<- summary(tree.simul)$misclass[1]
+}
+err.pch<- rep(1,500)
+min<- order(err.rate1,decreasing = FALSE)[1:4]
+err.color[min]<- c("blue","red","green","darkgreen")
+err.pch[min]<- c(16,16,16,16)#标准训练误差最小的四个点
+plot(err.rate1,xlab="predictor",ylab="Error on Full training set",
+     pch=err.pch)
