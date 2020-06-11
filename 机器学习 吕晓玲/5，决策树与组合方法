@@ -1,0 +1,31 @@
+#决策树和组合方法
+#数据简介
+##乳腺癌数据（bispsy）是从威斯康星卖迪逊大学医院获取的，有699个肿瘤切片的诊断信息
+##数据共有11个变量，有9个为是否为恶性癌症有关
+#描述统计
+library(MASS)
+data("biopsy")
+biopsy<- biopsy[-1]#把第一列ID去掉
+table(biopsy$class)
+library(mice)
+md.pattern(biopsy)#生成缺失数据报告
+set.seed(1234567)
+train<- sample(1:nrow(biopsy),round(0.8*nrow(biopsy)))#抽取80%作为训练集
+#分类树
+##首先调用tree包中的tree（）函数建立一棵分类决策树
+library(tree)
+bio.tree<- tree(class~.-class,biopsy[train,])
+summary(bio.tree)
+bio.tree.pred<- predict(bio.tree,biopsy[-train,],type = 'class')
+table(bio.tree.pred,biopsy[-train,'class'])
+plot(bio.tree)
+text(bio.tree)
+#bagging方法
+##bagging是随机森林的一种特殊情况，即在每次分割时不对变量做随机抽样
+library(randomForest)
+bio.bag<- randomForest(class~.,biopsy[train,],na.action=na.roughfix,
+                       mtry=ncol(biopsy)-1)
+#在上述函数中mtry=ncol(biopsy)-1用来指定每次分割当中用到的变量的个数
+#除输出变量外的9个变量，用na.action=na.roughfix来指定用列的中位数代替缺失数据
+bio.bag.pred<- predict(bio.bag,biopsy[-train,])
+table(bio.bag.pred,biopsy[-train,'class'])
