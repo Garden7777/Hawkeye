@@ -105,3 +105,39 @@ err.color[min]<- c("blue","red","green","darkgreen")
 err.pch[min]<- c(16,16,16,16)#标准训练误差最小的四个点
 plot(err.rate1,xlab="predictor",ylab="Error on Full training set",
      pch=err.pch)
+##检验交叉验证效果
+err.train<- rep(0,500)
+err.test<- rep(0,500)
+set.seed(16458)
+train_row<- sample(20,20*0.8,replace=FALSE)#训练集及（4/5）和测试集（1/5）
+for(i in 1:nq){
+  subdata<- data.frame(cbind(N,Q[,i],stringAsFactors=F))
+  subdata$N<- as.factor(subdata$N)
+  my.train<- tree(N~.,subdata,subset=train_row)
+  my.pred<- predict(my.train,newdata=subdata[-train_row,],type="class")
+  err.train[i]<- summary(my.train)$misclass[1]
+  err.test[i]<- sum(my.pred!=subdata[-train_row,]$N)
+}#计算对应实心点分类效果
+plot(err.train,err.test,xlab = "Error on 4/5",ylab = "error on 1/5",pch=err.pch)
+##标注类别标签
+Npch<- rep(1,20)
+N<- as.factor(N)
+Npch[-train_row]<- c(16,16,16,16)
+plot(Q[,83],N,ylab = "class label",xlab = "predictor83(",pch=Npch)
+abline(v=-0.399247)#整个数据集上得到的分类边界
+abline(v=-0.48676,lty=2)#4/5训练集上得到的分类边界
+legend("topright",c("full","4/5"),lty=c(1,2))
+##模拟数据集的CV误差
+i<- 83
+err.test<- rep(0,50)
+for(t in 1:50){
+  set.seed(45+t)
+  N<- sample(N)
+  subdata<- data.frame(cbind(N,Q[,i]),stringsAsFactors = F)
+  subdata$N<- as.factor(subdata$N)
+  my.train<- tree(N~.,subdata,subset = train_row)
+  my.pred<- predict(my.train,newdata = subdata[-train_row],type="class")
+  err.test[t]<- mean(my.pred!=subdata[-train_row,]$N)
+}
+boxplot(err.test,xlab="cv errors")
+
