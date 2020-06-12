@@ -29,3 +29,38 @@ bio.bag<- randomForest(class~.,biopsy[train,],na.action=na.roughfix,
 #除输出变量外的9个变量，用na.action=na.roughfix来指定用列的中位数代替缺失数据
 bio.bag.pred<- predict(bio.bag,biopsy[-train,])
 table(bio.bag.pred,biopsy[-train,'class'])
+#数据描述
+#cpu数据，cpu数据集中有209个cpu的9中性能指标
+#描述统计
+library(MASS)
+data(cpus)
+cpus<-cpus[,2:(ncol(cpus)-1)]
+cpus<- data.frame(cpus)
+windowsFonts(A=windowsFont("Times New Roman"),
+             B=windowsFont("Arial Black"))
+par(family="A")
+pairs(cpus)#绘制散点图
+hist(cpus$perf)#使用hist函数做因变量perf的直方图
+#由直方图可以看出perf严重右偏考虑取perf的对数使之正太化
+hist(log10(cpus$perf))
+cpus$perf=log10(cpus$perf)
+set.seed(1234)
+train=sample(1:nrow(cpus),round(0.8*round(nrow(cpus))))
+#回归树的建立
+library(tree)
+attach(cpus)
+cpus_tree=tree(perf~.,cpus[train,])
+summary(cpus_tree)
+plot(cpus_tree)
+text(cpus_tree)
+#bagging算法
+#与分类问题相似，我们用randomForest()函数构造bagging模型
+#指定每棵树都用全部6个自变量，并将模型用于测试集
+###构造bagging模型
+library(randomForest)
+cpus_bag<- randomForest(perf~.,cpus[train,],mtry=ncol(cpus)-1)
+###用于测试集
+cpus_bag.pred<- predict(cpus_bag,cpus[-train,])
+mean((cpus_bag.pred-cpus[-train,'perf'])^2)
+#随机森林方法
+#再用randomForest函数构造随机森林模型
