@@ -64,3 +64,17 @@ cpus_bag.pred<- predict(cpus_bag,cpus[-train,])
 mean((cpus_bag.pred-cpus[-train,'perf'])^2)
 #随机森林方法
 #再用randomForest函数构造随机森林模型
+library(randomForest)
+cpus_rf<- randomForest(perf~.,cpus[train,],importance=T)
+#对于回归问题，随机森林默认p/3个变量构造一棵树，在本例
+#即用2个变量，用importance=T计算变量重要性，构造模型后
+#可用importance（）输出各变量的重要性
+cpus_rf.pred<- predict(cpus_rf,cpus[-train,])
+mean((cpus_rf.pred-cpus[-train,'perf'])^2)
+#boosting模型
+library(gbm)
+cpus_boost<- gbm(perfZ~.,cpu[train,],distribution='gaussian',
+                 n.trees=5000,interaction.depth=4)
+#以上假设分布为高斯的
+cpus_boost.pred<- predict(cpus_boost,cpus[-train,],ntrees=5000)
+mean((cpus_boost.pred-cpus[-train,'perf'])^2)
