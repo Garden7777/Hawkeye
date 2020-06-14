@@ -1,1 +1,73 @@
-
+#第2章 ggplot2入门
+#2.1简介
+#2.2耗油量数据
+library(ggplot2)
+mpg
+#2.3知识要点
+#ggplot2图像的三个基本构成
+#数据，图形属性映射，几何对象
+#比如
+ggplot(mpg,aes(x=displ,y=hwy))+geom_point()
+ggplot(mpg,aes(x=displ,y=hwy,z=cty))+geom_point()
+#2.4颜色，大小，形状和其他图形属性
+ggplot(mpg,aes(displ,hwy,
+               colour=class,#颜色按照class类别给出
+               shape=drv,#形状按照drv类别给出
+               size=cyl))+geom_point()#大小按照cy1类别给出
+#给某一图形属性赋予固定值而不使用标度，把对应函数写在aes
+#函数外侧即可
+par(mfrow=c(1,2))
+ggplot(mpg,aes(displ,hwy))+geom_point(aes(colour="blue"))
+ggplot(mpg,aes(displ,hwy))+geom_point(colour="blue")
+vignette("ggolot2-specs")#查阅颜色和其他属性图形所需的值
+#分面
+#分面可以在图像中展示分类变量，它会将数据分为若干子集，然后
+#创建图形的矩阵，再把每一个子集绘制到图形矩阵的窗口中
+#封装型分面应用facet_wrap函数
+ggplot(mpg,aes(displ,hwy))+geom_point()+facet_wrap(~class)
+#几何对象
+#geom_smooth拟合一条平滑曲线
+#geom_boxplot绘制箱线图
+#geom_histogram和geom_freqpoly展示连续型变量的分布
+#geom_bar()绘制分类变量的分布情况
+#geom_path()和geo_line()在数据点之间绘制线。
+#2.6.1在图中添加平滑曲线
+#当散点图中数据点太多，数据的实际趋势可能被掩盖，这种
+#情况下可以用geom_smooth()添加一条平滑曲线
+ggplot(mpg,aes(displ,hwy))+geom_point()+geom_smooth()
+#灰色部分表示逐点置信区间
+#如果不想绘制置信区间，可以输入geom_smooth(se=FALSe)
+#曲线平滑程度由span进行控制，取值范围由0（很不平滑）
+#到1（很平滑）
+ggplot(mpg,aes(displ,hwy))+
+  geom_point()+geom_smooth(span=0.2)
+ggplot(mpg,aes(displ,hwy))+
+  geom_point()+geom_smooth(span=1)
+#method="loess"是n较小时的默认选项，并不适用于大数据
+#method="gam"可以调用mgcv调用一个广义可加模型，然后
+#调用公式formula=y~s(x)或者y~s(x,bs="cs")(用于大数据)
+#这是数据量超过1000的ggplot2的默认选项
+library(mgcv)
+ggplot(mpg,aes(displ,hwy))+
+  geom_point()+
+  geom_smooth(method="gam",formula=y~s(x))
+#method="lm"是线性模型
+ggplot(mpg,aes(displ,hwy))+
+  geom_point()+
+  geom_smooth(method = "lm")
+#method="rlm"与lm（）类似，但是更加稳健，在使用前需加载
+# MASS包
+#箱线图和扰动点图
+#散点图
+ggplot(mpg,aes(drv,hwy))+geom_point()
+#扰动点图
+ggplot(mpg,aes(drv,hwy))+geom_jitter()
+#箱线图
+ggplot(mpg,aes(drv,hwy))+geom_boxplot()
+#小提琴图
+ggplot(mpg,aes(drv,hwy))+geom_violin()
+#2.6.3直方图和频数多边图
+#直方图
+ggplot(mpg,aes(hwy))+geom_histogram()
+#频数多边图
+ggplot(mpg,aes(hwy))+geom_freqpoly()
