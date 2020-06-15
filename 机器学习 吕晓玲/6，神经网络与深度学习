@@ -1,0 +1,98 @@
+#数据说明
+#本数据是UCI数据库上下载的，是一个有关能耗的数据集
+#描述统计
+ENBdata<- read.csv("C:\\Users\\Garde\\Desktop\\ENB2012_data.csv",head=T,sep = ",")
+str(ENBdata)
+summary(ENBdata)
+ENBdata<- ENBdata[1:10]
+ENBdata<- na.omit(ENBdata)
+options(max.print = 1000000)
+#对数据进行一个归一化处理
+normalize<- function(x){return((x-min(x))/(max(x)-min(x)))}
+ENBdata_norm<- as.data.frame(lapply(ENBdata, normalize))
+#BP网络回归预测
+#将数据集划分为一个样本量为70%,另一个样本量为30%的数据
+###建立数据集和测试集
+n<- dim(ENBdata_norm)[1]
+set.seed(13)
+train_index<- sample(1:n,round(n*0.7))
+train<- ENBdata_norm[train_index,]#训练集
+test<- ENBdata_norm[-train_index,]#测试集
+###建立神经网络
+library(nnet)
+r<- 1/max(abs(train[,1:8]))
+set.seed(101)
+model<- nnet(Y1~X1+X2+X3+X4+X5+X6+X7+X8,data=train,size=3,
+            rang=r,decay=1e-5,maxit=1000)#建立神经网络，
+
+#隐层神经元个数设置为3
+summary(model)
+pred_test<- predict(model,test[,1:8])
+cor(test[,9],pred_test)
+#红酒品质数据
+#数据说明
+##数据来源于UCI数据库，包含了1599个红葡萄酒数据进行研究
+##描述统计winequality-red
+red_wine<- read.csv("C:\\Users\\Garde\\Desktop\\winequality-red.csv",
+                    sep=";",header=T,fill=T)
+table(red_wine$quality)
+#将红酒品质分为两个等级
+#其中1，2，3为“bad”品质，4，5，6为“good”品质
+#建模目标是建立具有1个隐层的BP网络模型
+#利用样本的11个特征变量对其品质进行判别
+tmp<- 0#用于临时存储
+n<- dim(red_wine)[1]
+for(i in 1:n){
+  if(red_wine[i,12]>5){tmp[i]<- "good"}
+  else {tmp[i]<- "bad"}
+}
+red_wine[,12]<- as.factor(tmp)#字符型变量转换成含有因子的变量
+normalize<- function(x){return((x-min(x))/(max(x)-min(x)))}
+red_wine[,1:11]<- lapply(red_wine[,1:11],normalize)
+set.seed(13)
+test_index<- sample(1:n, round(n*0.3))
+train<- red_wine[-test_index,]#训练集
+test<- red_wine[test_index,]#测试集
+n_train<- dim(train)[1]
+n_test<- dim(test)[1]
+#Bp神经网络的分类预测
+#利用nnet中的包nnet（）建立神经网络，隐层神经元的个数为2
+library(nnet)
+r<- 1/max(abs(train[,1:11]))#确定参数rang的变化范围
+set.seed(102)
+model<- nnet(quality~.,data=train,size=2,rang=r,decay=1e-5,maxit=400)#建立神经网络
+summary(model)
+#对测试集进行预测
+pred_test<- predict(model,test[,1:11],type="class")
+#根据模型model对test进行预测
+table(test[,12],pred_test)#混淆矩阵
+#设立不同的额隐层神经元数目进行模型的误判率预测
+err_train<- 0
+err_test<- 0
+max_number<- 20
+for (i in 1:max_number) {
+  set.seed(123)
+  model<- nnet(quality~.,data=train,size=i,rang=r,decay=1e-5,maxit=400)
+  pred_train<- predict(model,train[,1:11],type="class")
+  pred_test<- predict(model,test[,1:11],type="class")
+  err_train[i]<- sum(pred_train!=train[,12])/n_train
+  err_test[i]<- sum(pred_test!=test[,12])/n_test 
+}
+plot(1:max_number,err_train,'l',col=1,lty=1,ylab="误判率",xlab="隐层神经元个数",ylim=c(min(min(err_train),min(err_test)),max(max(err_train),max(err_test))))
+lines(1:max_number,err_test,col=1,lty=2)
+points(1:max_number,err_train,col=1,pch="o")
+points(1:max_number,err_test,col=1,pch="*")
+legend(10,0.26,"测试集误判率",bty="n",cex=1.1)
+legend(7,0.12,"训练集误判率",bty="n",cex=1.1)
+#由此可以看出当隐层神经元个数等于3的时候，误判率是最低
+#以此建立神经网络
+set.seed(123)
+model<- nnet(quality~.,data=train,size=3,rang=r,decay=1e-5,maxit=400)
+pred_test<- predict(model,test[,1:11],type = "class")
+table(test[,12],pred_test)
+err<- sum(pred_test!=test[,12])/n_test
+#手写数字识别
+#数据说明
+#数据选自kaggle，包括42000张图像，手写数字“0”~“9”的灰色图像
+#每张图片像素为28x28，因此可以用一个784维的向量进行表示
+#数据集共有785列，第一列为该数据的类别标签，其余为图像
