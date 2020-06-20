@@ -1,0 +1,28 @@
+#聚类分析
+#数据说明
+#Iris数据是常用的分类实验数据集，记录了150个花
+#描述统计
+library(MASS)
+data(iris)
+attach(iris)
+iris[1:5,]#显示数据的1到5行
+table(Species)#分类统计
+#绘制每个变量的箱线图
+par(mfrow=c(2,2),family="A")
+boxplot(Sepal.Length~Species,main="special.length")
+boxplot(Sepal.Width~Species,main="sepal width")
+boxplot(Petal.Length~Species,main="petal length")
+boxplot(Petal.Width~Species,main="petal width")
+#基于距离的聚类，利用前四个变量对数据进行层次聚类
+c.data<- iris[,1:4]
+attach(c.data)
+d<- dist(c.data)#计算距离
+hc<- hclust(d,method="complete")#进行层次聚类
+plot(hc)
+#选定类别数为3，将聚类结果与真实值比较
+hccut<- cutree(hc,k=3)#将类别数定位3
+table(iris$Species,hccut)#有24个样本聚类错误
+#利用k-means聚类法将数据分为3类
+kc<- kmeans(c.data,3)
+table(iris$Species,kc$cluster)#有16个样本聚类错误
+#DBSCAN聚类
