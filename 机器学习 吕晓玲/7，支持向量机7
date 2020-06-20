@@ -1,0 +1,31 @@
+#支持向量机
+#Glass数据是来自R包mlbench
+#描述统计，我们用summary（）对数据结果进行描述，将数据分成
+#70%训练集和30%训练集
+library(e1071)
+library(mlbench)
+data(Glass)
+summary(Glass)
+set.seed(1234)
+index<- sample(nrow(Glass),0.7*nrow(Glass))
+train<-Glass[index,]
+test<- Glass[-index,]
+#建立SVM模型
+library(e1071)
+set.seed(1234)
+li.svm<- svm(Type~.,kernel="linear",data=train)#线性核
+li.svm
+svm.pred1<- predict(li.svm,na.omit(test))
+svm.pref1<- table(na.omit(test)$Type,svm.pred1,dnn=c("Actual","Predicted")
+)#高斯核
+svm.pref1
+ra.svm<- svm(Type~.,data=train,kernel="radial")
+ra.svm
+svm.pred2<- predict(ra.svm,na.omit(test))
+svm.pref2<- table(na.omit(test)$Type,svm.pred2,dnn=c("Actual","Predicted"))
+svm.pref2
+po.svm<- svm(Type~.,data=train,kernal="polynomial")#多项式和
+po.svm
+svm.pred3<- predict(po.svm,na.omit(test))
+svm.pref3<- table(na.omit(test)$Type,svm.pred3,dnn=c("Actual","Predicted"))
+svm.pref3
