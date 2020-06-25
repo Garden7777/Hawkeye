@@ -71,3 +71,81 @@ ggplot(mpg,aes(drv,hwy))+geom_violin()
 ggplot(mpg,aes(hwy))+geom_histogram()
 #频数多边图
 ggplot(mpg,aes(hwy))+geom_freqpoly()
+#可以用binwidth用来调整组距
+ggplot(mpg,aes(hwy))+
+  geom_freqpoly(binwidth=2.5)
+ggplot(mpg,aes(hwy))+
+  geom_freqpoly(binwidth=1)
+#geom_density()是绘制的密度曲线图，这与频数多变图相似
+#但是密度曲线图有着无界，连续且平滑的
+#为了展示不同子集的分布，可以将分类变量映射为填充色
+ggplot(mpg,aes(displ,colour=drv))+
+  geom_freqpoly(binwidth=0.5)
+ggplot(mpg,aes(displ,fill=drv))+
+  geom_histogram(binwidth = 0.5)+
+  facet_wrap(~drv,ncol=1)
+#2.6.4条形图
+ggplot(mpg,aes(manufacturer))+
+  geom_bar()
+#使用条形图和点图
+drugs<- data.frame(
+  drug=c("a","b","c"),effect=c(4.2,9.7,6.1)
+)
+ggplot(drugs,aes(drug,effect))+geom_bar(stat="identity")
+ggplot(drugs,aes(drug,effect))+geom_point()
+#2.6.5时间序列中的折线图
+#折线图和路径图常用于可视化时间序列数据
+ggplot(economics,aes(date,unemploy/pop))+geom_line()
+ggplot(economics,aes(date,uempmed))+geom_line()
+#路径图
+ggplot(economics,aes(unemploy/pop,uempmed))+
+  geom_path()+geom_point()
+year<- function(x)as.POSIXlt(x)$year+1900
+ggplot(economics,aes(unemploy/pop,uempmed))+
+  geom_path(colour="grey50")+
+  geom_point(aes(colour=year(date)))
+#2.7修饰坐标轴
+#修饰坐标轴主要是靠xlab和ylab两个函数
+ggplot(mpg,aes(cty,hwy))+geom_point(alpha=1/3)+
+  xlab("city driving(mpg)")+
+  ylab("highway driving(mpg)")
+ggplot(mpg,aes(cty,hwy))+geom_point(alpha=1/3)+
+  xlab(NULL)+
+  ylab(NULL)
+#调整坐标轴的显示区间
+ggplot(mpg,aes(drv,hwy))+
+  geom_jitter(width=0.25)
+
+ggplot(mpg,aes(drv,hwy))+
+  geom_jitter(width=0.25)+
+  xlim("f","r")+
+  ylim(20,30)
+
+#对于连续性标度，NA可以设置单侧置信区间
+ggplot(mpg,aes(drv,hwy))+
+  geom_jitter(width = 0.25,na.rm = TRUE)+
+  ylim(NA,30)
+#对于超出区间的数据，R会发出警告，这个时候，可以用
+# na.rm=TRUE关闭
+#2.8输出
+#可将图像储存为变量
+p<- ggplot(mpg,aes(displ,hwy,colour=factor(cyl)))+
+  geom_point()
+#在写函数的时候，我们需要写出print
+print(p)
+#可以通过ggsave储存到硬盘中
+ggsave("plot.png",width=5,height=5)
+#通过summary查看图像结构摘要
+summary(p)
+#通过saveRDS把图形缓存副本到硬盘中
+saveRDS(p,"plot.rds")
+q<- readRDS("plot.rds")
+#快熟绘图####
+#在快速绘图中，可以发现qplot比ggplot更加有用
+qplot(displ,hwy,data=mpg)
+qplot(displ,data=mpg)
+#在没有声明的情况下，qplot可以根据现有数据自动选择图像
+qplot(displ,hwy,data=mpg,colour="blue")
+#如果需要指定某一图形属性变量，则需要使用I()函数
+qplot(displ,hwy,data=mpg,colour=I("blue"))
+
