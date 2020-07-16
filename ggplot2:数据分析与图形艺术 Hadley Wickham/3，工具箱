@@ -1,0 +1,518 @@
+#工具箱####
+#3.1简介####
+#3.2基本图形形状####
+#用代码绘制几何图像
+df<- data.frame(x=c(3,1,5),y=c(2,4,6),label=c("a","b","c"))
+p<- ggplot(df,aes(x,y,label=label))+
+  labs(x=NULL,y=NULL)+#隐藏坐标轴标签
+  theme(plot.title = element_text(size=12))#缩小标题尺寸
+p+geom_point()+ggtitle("point")#绘制点图
+p+geom_text()+ggtitle("text")#绘制文本图
+p+geom_bar(stat="identity")+ggtitle("bar")#绘制柱状图
+p+geom_tile()+ggtitle("raster")#绘制面积图
+
+p+geom_line()+ggtitle("line")#线图
+p+geom_area()+ggtitle("area")#面积图
+p+geom_path()+ggtitle("path")#路径图，类似于折线图但是路径图
+                            #是依照数据出现的顺序进行连接
+p+geom_polygon()+ggtitle("polygon")#多边形图
+
+#3.2标签####
+#在图像中添加文字标签有时并不是很容易，ggplot2尚不能完全解决这个
+#问题，但是我们所提供的各类工具可以大幅度减少我们的工作量
+#这里我们主要使用函数geom_text()
+df<- data.frame(x=1,y=3:1,
+                family=c("sans","serif","mono"))
+ggplot(df,aes(x,y))+
+  geom_text(aes(label=family,family=family))
+#sans是无衬线字体，即黑体
+#serif是有衬线字体，即宋体
+#mono是等宽字体
+#fontface设置字体风格。默认(plain),粗体(bold)和斜体(italic)
+df<- data.frame(x=1,y=3:1,
+                face=c("plain","bold","italic"))
+ggplot(df,aes(x,y))+
+  geom_text(aes(label=face,fontface=face))
+#改变文本对齐方式
+#hjust（left，center，right，inward， outward）
+#vjust（bottom，moiddle，top，inward，outward）
+#默认的对齐方式为居中即center，inward比较有用
+#将文字向图形中央对齐
+df<- data.frame(x=c(1,2,1,2,1.5),y=c(1,2,1,2,1.5),
+                text=c("bottom-left","bottom-right",
+                       "top-left","top-right",
+                       "center"))
+ggplot(df,aes(x,y))+
+  geom_text(aes(label=text))
+ggplot(df,aes(x,y))+geom_text(aes(label=text),
+                              vjust="inward",
+                              hjust="inward")
+#ggplot2中size并不是常见的磅为单位，而是使用毫米
+#angle定义文本旋转的角度
+#我们在设置标签的时候，一般不会将标签设置在点或者图像上
+#因此我们可以用nudge_x和nudge_y将文本设置在数据点附近的
+#位置
+df<- data.frame(trt=c("a","b","c"),resp=c(1.2,3.4,2))
+ggplot(df,aes(resp,trt))+
+  geom_point()+
+  geom_text(aes(label=paste("(",resp,")")),
+            nudge_y = -0.25)+xlim(1,3.6)
+
+#check_overlap=TRUE标签会自动删除
+ggplot(mpg,aes(displ,hwy))+
+  geom_text(aes(label=model))+xlim(1,8)
+ggplot(mpg,aes(displ,hwy))+
+  geom_text(aes(label=model),check_overlap = TRUE)+
+  xlim(1,8)
+
+#geom_label是geom_text的衍生版本，它会在文本外绘制矩形
+#让标签在复杂的背景中显得更加清晰
+label<- data.frame(waiting=c(55,80),eruptions=c(2,4.3),
+                   label=c("peak one","peak two"))
+ggplot(faithfuld,aes(waiting,eruptions))+
+  geom_tile(aes(fill=density))+
+  geom_label(data=label,aes(label=label))
+
+#文本标签替代图例，可以使图像更ggplot(mpg,aes(displ,hwy,color=class))+
+  geom_point(show.legend = FALSE)+
+  directlabels::geom_dl(aes(label=class),method="smart.grid")
+加清晰明了
+#毕竟标签距离数据点更近
+#可以用directlabels程序包实现
+ggplot(mpg,aes(displ,hwy,colour=class))+
+  geom_point()
+
+#3.4注解####
+#geom_text可以添加文本说明为点添加标签
+#geom_rect()可以标注图形中你感兴趣的部分，有xmin，
+#xmax，ymin和ymax四个参数
+#geom_line(),geom_path和geom_segment可以添加直线，
+#并且支持arrow参数，既可以为直线提供箭头
+#geom_vline,geom_hline和geom_abline可以为图形提供参照线
+#范围是全图
+  
+ggplot(economics,aes(date,unemploy))+geom_line()
+#我们可以在图中添加注解标明各个总统当政的时间
+#-inf和inf表示添加注解的位置，即上和下
+presidential<- subset(presidential,start>economics$date[1])
+
+ggplot(economics)+
+  geom_rect(aes(xmin=start,xmax=end,fill=party),
+            ymin=-Inf,ymax=Inf,alpha=0.2,data=presidential)+
+geom_vline(aes(xintercept=as.numeric(start)),
+            data=presidential,colour="grey50",alpha=0.5)+
+geom_text(aes(x=start,y=2500,label=name),
+          data=presidential,size=3,vjust=0,hjust=0,nudge_x =50)+
+geom_line(aes(date,unemploy))+
+  scale_fill_manual(values = c("blue","red"))
+#scale_fill_manual可以创建多个颜色的填充图
+
+#在图中创建一个数据框，加入注解
+xrng<- range(economics$unemploy)
+yrng<- range(economics$date)
+caption<- paste(strwrap("unemployment rates in the US have varied a lot over the year",40),collapse = "\n")
+
+ggplot(economics,aes(date,unemploy))+
+  geom_line()+
+  geom_text(aes(x,y,label=caption),
+            data=data.frame(x=xrng[1],y=yrng[2],caption=caption),
+            hjust=0,vjust=1,size=4)
+#使用annotate()辅助函数可以大大简化这一过程
+ggplot(economics,aes(date,unemploy))+
+  geom_line()+
+  annotate("text",x=xrng[1],y=yrng[2],label=caption,
+           hjust=0,vjust=1,size=4)
+ 
+#运用参照线看清楚各组数据间的细微差别
+ggplot(diamonds,aes(log10(carat),log10(price)))+
+  geom_bin2d()+facet_wrap(~cut, nrow = 1)
+
+mod_coef<- coef(lm(log10(price)~log10(carat)),data=diamonds)
+ggplot(diamonds,aes(log10(carat),log10(price)))+
+  geom_bin2d()+
+  geom_abline(intercept = mod_coef[1],
+              slope=mod_coef[2],colour='white',size=1)+
+  facet_wrap(~cut,nrow=1)
+
+#3.5群组几何对象####
+#几何对象大致可以分为个体和总体两类
+#比如在散点图中一个点就是一个观测对象即表示个体
+#然而在箱线图中，一个图就表示一个总体
+#我们将使用nlme包中的xboys数据，它记录了26个孩子在9个不同的时期
+#所记录的身高和中心化后的年龄，其中subject和Dccasion以有序因子的形式存储
+data(Oxboys,package = 'nlme')
+head(Oxboys)
+
+#3.5.1多个分组与单一图形属性####
+#展示每个学生的成长轨迹，在纵向数据中应用广泛
+ggplot(Oxboys,aes(age,height,group=Subject))+
+  geom_point()+geom_line()
+#如果分组变量设置有误，那么就会得到一张毫无用处的锯齿状图
+ggplot(Oxboys,aes(age,height))+
+  geom_point()+geom_line()
+#如果分组由多个 变量而非单一变量则可以使用interaction合并各个
+#变量，例如aes(group=interaction(school_id,student_id))
+
+#3.5.2不同图层上的不同分组####
+#有时我们将不同水平下的数据进行整合，然后使用统计汇总信息绘制图形
+#在上图的基础上我们添加一条平滑曲线
+ggplot(Oxboys,aes(age,height,group=Subject))+
+  geom_line()+geom_smooth(method = 'lm',se=FALSE)
+#显然这个结果并不是我们想要的，分组不会改变几何对象的展示，还影响
+#统计变换的操作：即每组数据都进行了一次统计变换
+#因此我们不能在ggplot()中设置分组，因为它会将统计变换应用于所有的图层
+#在geom_line()设置分组则可以解决问题，图像中没有离散型随机变量
+#所以分组是连续型的
+ggplot(Oxboys,aes(age,height))+
+  geom_line(aes(group=Subject))+
+  geom_smooth(method='lm',size=2,se=FALSE)
+
+#3.5.3修改默认分组####
+ggplot(Oxboys,aes(Occasion,height))+
+  geom_boxplot()
+
+ggplot(Oxboys,aes(Occasion,height))+
+  geom_boxplot()+
+  geom_line(colour='#3366FF',alpha=0.5)
+  #在这里简单添加没有什么显著的效果
+
+#在基础上添加个体轨迹，需要修改默认分组，告诉机器每个男孩绘制一条
+#曲线
+ggplot(Oxboys,aes(Occasion,height))+
+  geom_boxplot()+
+  geom_line(aes(group=Subject),colour='#3366FF')
+  
+#3.5.4匹配图形属性与图形对象
+#群组几何对象的另一个重要问题是，如何将个体的图形属性映射给整体的
+#图形属性
+#折线图和路径图遵循差一原则：若观测点比线段数目多一，第一条线段将使用
+#第一个观测值的图形属性，第二条线段将使用第二个观测值的图形属性，
+#依次类推
+
+df<- data.frame(x=1:3,y=1:3,colour=c(1,3,5))
+
+ggplot(df,aes(x,y,colour=factor(colour)))+
+  geom_line(aes(group=1),size=2)+
+  geom_point(size=5)
+
+ggplot(df,aes(x,y,colour=colour))+
+  geom_line(aes(group=1),size=2)+
+  geom_point(size=5)
+  
+#可以设计一个更为复杂的系统，其中的线段平稳的从一种图形属性过度到
+#另一种图形属性，这种方式对连续性随机变量很有效，如大小和颜色，
+#在ggplot2中并无此应用，如果要实现，需要通过线性插值法实现
+
+xgrid<- with(df,seq(min(x),max(x),length=50))
+interp<- data.frame(x=xgrid,
+                    y=approx(df$x,df$y,xout = xgrid)$y,
+                    colour=approx(df$x,df$colour,xout = xgrid)$y)
+
+ggplot(interp,aes(x,y,colour=colour))+
+  geom_line(size=2)+geom_point(data=df,size=5)
+  #折线图和路径图的另一个局限在于每个个体的线段类型必须是一致的
+  #因为R不支持绘制不同线段类型相连接的曲线
+#对于其他的组几何对象而言，只有当所有的个体的图形属性都相同时
+#该图形属性才会被使用，否则将使用默认值，这适用于fill参数，因为他是
+#整体对象的一个性质，考虑给多边形边界上的点 填充不同颜色没有任何意义
+ggplot (mpg,aes(class))+
+  geom_bar()
+
+ggplot(mpg,aes(class,fill=drv))+
+  geom_bar()
+  
+#需要对每一class设定重条块，可以设定分组用来实现这个效果
+ggplot(mpg,aes(class,fill=hwy))+
+  geom_bar()
+
+ggplot(mpg,aes(class,fill=hwy,group=hwy))+
+  geom_bar()
+
+#3.6曲面图####
+#ggplot2并不支持三维曲面图，但是设置了在二维平面上展现三维曲面的
+#常见工具：等高线图，着色瓦片以及气泡图
+
+ggplot(faithfuld,aes(eruptions,waiting))+
+  geom_contour(aes(z=density,colour=..level..))#等高线图
+  
+ggplot(faithfuld,aes(eruptions,waiting))+
+  geom_raster(aes(fill=density))#着色瓦图
+  
+#气泡图
+small<- faithfuld[seq(1,nrow(faithfuld),by=10),]
+ggplot(small,aes(eruptions,waiting))+
+  geom_point(aes(size=density),alpha=1/3)+
+  scale_size_area()
+#对于三维式交互图形和真实三维曲面的绘制
+
+#3.7绘制地图####
+#我们共有四种需要可视化的地图数据：矢量边界，点状元数据，区域元数据
+#光栅图
+#绘制密歇根地图，逐一介绍这四类地图数据的可视化
+
+#3.7.1矢量边界####
+#矢量边界通常为数据框形式，其中包含一个地理区域的每个边界点的数据
+#它包括以下四类变量
+#lat纬度，long经度，group每个毗邻区域的独特标记，id记录一个地区的名称
+
+mi_counties<- ggplot2::map_data("country","michigan")%>%
+  select(lon=long,lat,group,id=subregion)
+head(mi_counties)
+#使用geom_polygon进行可视化矢量边界数据
+ggplot(mi_counties,aes(lon,lat))+
+  geom_polygon(aes(group=group))+
+  coord_quickmap()
+
+ggplot(mi_counties,aes(lon,lat))+
+  geom_polygon(aes(group=group),fill=NA,colour="grey50")+
+  coord_quickmap()
+#关注coord_quickmap的应用，它可以对地图比例尺是否合适做出建议判断
+#以下是包含若干矢量边界数据资源的包
+#USAboundaries包，tigris包，rnaturalearth包，osmar包
+#也许你有地图数据集（.shp），可以通过maptools::readShapeSpatial()
+#把他们载入R
+#老版USAbounda（0.2.0版本）使用的是sp数据集，新版的则是使用sf‘数据集
+#在做开发的时候可以使用Github版本
+install.packages(c("sf","devtools"))
+devtools::install_github("tidyverse/ggplot2")
+devtools::install_github("ropensci/USAboundaries")
+devtools::install_github("ropensci/USAboundaries")
+c18df<- USAboundaries::us_states(as.Date("1820-01-01"))
+
+ggplot2::ggplot()+ggplot2::geom_sf(data=c18df,color="gray50",fill=NA)
+
+#3.7.2 点状元数据####
+#点状元数据使用其他变量链接各个位点（由经纬度定义）
+#比如如下代码提取密歇根州中最大的城市数据
+mi_cities<- maps::us.cities%>%
+            dplyr::tbl_df()%>%
+            filter(country.etc=="MI")%>%
+            select(-country.etc,lon=long)%>%
+            arrange(desc(pop))
+
+#我们可以利用散点图展示这些数据，但是需要解释说明，才能让图像
+#清晰有效
+ggplot(mi_cities,aes(lon,lat))+
+  geom_point(aes(size=pop))+
+               scale_size_area()+
+               coord_quickmap()
+
+ggplot(mi_cities,aes(lon,lat))+
+  geom_polygon(aes(group=grouo),mi_counties,
+               fill=NA,colour="grey50")+
+  geom_point(aes(size=pop),color="red")+
+  scale_size_area()+
+  coord_quickmap()
+#size=pop表示按照pop进行点的绘制
+
+#3.7.3光栅图####
+#如果你不需要在矢量边界图中进行解释说明，而只绘制一幅传统地图就称为
+#光栅图
+#绘制光栅图最简单的方法是用ggmap图
+if(file.exists("mi_raster.rds")){
+  mi_raster<- readRDS("mi_raster.rds")
+}else{
+  bbox<- c(
+    min(mi_counties$lon),min(mi_counties$lat),
+    max(mi_counties$lon),max(mi_counties$lat)
+  )
+  mi_raster<- ggmap::get_openstreetmap(bbox,scale=8735660)
+  saveRDS(mi_raster,"mi_raster.rds")
+}
+#找到合适的scale需要大量的试验
+#然后可以通过如下代码进行图像绘制
+ggmap::ggmap(mi_raster)
+ggmap:;ggmap(mi_raster)+
+  geom_point(aes(size=pop),mi_cities,color="red")+
+  scale_size_area()
+#如果从raster包中获得了光栅数据，可以用如下代码将其转化为
+#ggplot2支持的形式
+df<-as.data.frame(raster::rasterToPoints(x))
+names(df)<- c("lon","lat","x")
+ggplot(df,aes(lon,lat))+
+  geom_raster(aes(fill=x))
+
+#3.7.4区域元数据####
+#有时元数据不是以点状呈现而是以区域表示，比如我们可以用mi_census展示
+#密歇根州各县人口普查信息
+mi_census<- midwest%>%
+  tbl_df()%>%
+  filter(state=="MI")%>%
+  mutate(county=tolower(county))%>%
+  select(county,area,poptotal,percwhite,percblack)
+mi_census
+census_counties<- left_join(mi_census,mi_counties,
+                            by=c("county"="id"))
+census_counties
+
+ggplot(census_counties,aes(lon,lat,group=county))+
+  geom_polygon(aes(fill=poptotal))+
+  coord_quickmap()
+
+ggplot(census_counties,aes(lon,lat,group=county))+
+  geom_polygon(aes(fill=percwhite))+
+  coord_quickmap()
+#fill=percwhite表示按照percwhite进行对地图的填充
+
+#3.8揭示不确定性####
+#我们要展示数据的不确定性，具体使用哪个取决于x的只是离散的还是连续的
+#以及我们是否要展示区间中的中间值或者是仅仅展示区间
+#离散型：展示区间：geom_errorbar(),geom_linerange()
+        #展示区间和中间值：geom_crossbar(),geom_pointrange()
+#连续型：展示区间：geom_ribbon()
+        #展示区间和中心值 geom_smooth（stat="identidy")
+
+y<- c(18,11,16)
+df<- data.frame(x=1:3,y=y,se=c(1.2,0.5,1.0))
+
+base<- ggplot(df,aes(x,y,ymin=y-se,ymax=y+se))
+base+geom_crossbar()
+base+geom_pointrange()
+base+geom_smooth(stat="identity")
+
+base+geom_errorbar()
+base+geom_linerange()
+base+geom_ribbon()
+#3.9含权数据####
+#在处理整合后的数据时，数据集的每一行可能代表了多个观测值，此时
+#我们需要以某种方式把权重变量考虑进去
+ggplot(midwest,aes(percwhite,percbelowpoverty))+
+  geom_point()
+#以人口加权
+ggplot(midwest,aes(percwhite,percbelowpoverty))+
+  geom_point(aes(size=poptotal/1e6))+
+  scale_size_area("Population\n(millions)",
+                  breaks=c(0.5,1,2,4))
+#未加权
+ggplot(midwest,aes(percwhite,percbelowpoverty))+
+  geom_point()+
+  geom_smooth(method = lm,size=1)
+#以人口加权
+ggplot(midwest,aes(percwhite,percbelowpoverty))+
+  geom_point(aes(size=poptotal/1e6))+
+  geom_smooth(aes(weight=poptotal),method = lm,size=1)+
+  scale_size_area(guide="none")
+
+#我们将总人口作为权重去调整直方图或者密度图时，我们的视角从对郡数量
+#分布考察转向了对人口数量的分布考察，下面两张图像反应了这两种视角的
+#不同之处
+ggplot(midwest,aes(percbelowpoverty))+
+  geom_histogram(binwidth = 1)+
+  ylab("counties")
+
+
+ggplot(midwest,aes(percbelowpoverty))+
+  geom_histogram(aes(weight=poptotal,binwidth=1))+
+  ylab("population(1000s)")
+
+#3.10 钻石数据集####
+#为了研究大数据集的分析工具，我们将使用ggplot2内置的diamonds数据集
+#其中包含了约54000颗钻石的价格和质量的信息
+
+#3.11展示数据分布####
+#某些几何对象可以用来展示数据分布，具体使用哪种取决于分布的维度
+#变量时连续型还是离散型，以及我们感兴趣的是条件分布还是联合分布
+
+#对于一维连续型分布，最重要的几何对现象是直方图，geom_histogram(）
+ggplot(diamonds,aes(depth))+
+  geom_histogram()
+ggplot(diamonds,aes(depth))+
+  geom_histogram(binwidth = 0.1)+
+  xlim(55,70)
+
+#为了找到一个表现力强的视图，我们可以调整组距，选择binwidth调整
+#（组距宽度），设置bins（组数），另外也可以设置组距宽度，即breaks
+#频数多边图和条件密度图
+ggplot(diamonds,aes(depth))+
+  geom_freqpoly(aes(colour=cut),binwidth=0.1,na.rm=TRUE)+
+  xlim(58,68)+
+  theme(legend.position="none")
+
+ggplot(diamonds,aes(depth))+
+  geom_histogram(aes(fill=cut),binwidth = 0.1,
+                postion="fill",na.rm = TRUE)+
+  xlim(58,68)+
+  theme(legend.position="none")
+#条件密度图要用postion="fill"填充图像
+#作为几何对象的直方图和频数多边形，均使用stat=”bin"统计变换，统计变换
+#生成两个输出变量count和density，默认把count输出为y轴
+#变量density基本上等于各组频数除以总频数再乘以组距，此变量在我们想要比较不同
+#分布的形状而不是数ggplot(diamonds,aes(depth,fill=cut))+
+  geom_density(alpha=0.2,na.rm = TRUE)+
+  xlim(58,68)+
+  theme(legend.position = "none")据的绝对大小时更加有用
+#密度估计是分组可视化的另一选择，geom_density（）对每个数据点添上一点正态分布，
+#然后把所有曲线累加起来，可以用adjust来调整平滑程度
+ggplot(diamonds,aes(depth))+
+  geom_density(na.rm=TRUE)+
+  xlim(58,68)+
+  theme(legend.position = "none")
+ggplot(diamonds,aes(depth,fill=cut))+
+  geom_density(alpha=0.2,na.rm=TRUE)+#alpha是透明度
+  xlim(58,68)+
+  theme(legend.position = "none")
+#请注意每一条密度曲线下的面积均已成为1，所以密度曲线图损失有关各子集
+#间相对大小的信息
+#但是要在若干分布间做出比较的时候，牺牲一定的数据质量而侧重数量就显得
+#十分必要
+ggplot(diamonds,aes(clarity,ddepth))+
+  geom_boxplot()
+ggplot(diamonds,aes(carat,depth))+
+  geom_boxplot(aes(group=cut_width(carat,0.1)))+
+  xlim(NA,2.05)
+#geom_violin()是小提琴图，是密度图的精简版
+ggplot(diamonds,aes(clarity,depth))+
+  geom_violin()
+ggplot(diamonds,aes(carat,depth))+
+  geom_violin(aes(group=cut_width(carat,0.1)))+#如果x轴为连续型变量，则采用cut_width进行分组
+  xlim(NA,2.05)
+#geom_dotplot为每个观测点绘图
+
+#3.12处理遮盖绘制问题####
+#散点图是研究两个连续型随机变量关系的重要工具，但是当数据量太大时，这些散点就会出现重叠现象
+#这种情况就被称作遮盖绘制
+
+df<- data.frame(x=rnorm(2000),y=rnorm(2000))
+norm<- ggplot(df,aes(x,y))+xlab(NULL)+ylab(NULL)
+norm+geom_point()
+norm+geom_point(shape=1)#中空点
+norm+geom_point(shape=".")#像素大小
+
+#上面我们将点改为中空，以及将点改成像素大小，减少了点的覆盖问题，如果
+#点的覆盖问题仍然很严重，我们需要调整alpha参数用来改变点的透明度
+
+norm+geom_point(alpha=1/3)
+norm+geom_point(alpha=1/5)
+norm+geom_point(alpha=1/10)
+
+#当数据存在一定的离散性，我们可以在点上增加随机扰动geom_jitter()
+norm+geom_point(alpha=1/10)+geom_jitter()
+
+#我们也可以考虑将遮盖问题变成一个二维核密度估计
+#将全部数据点分箱并统计每个箱中点的数量，并且用geom_bin2d()可视化这个数值
+#也可以通过六边形取代，可以通过geom_hex()实现，需加载hexbin包
+
+norm+geom_bin2d()
+norm+geom_bin2d(bins=10)
+
+norm+geom_hex()
+norm+geom_hex(bins=10)
+
+#也可以用stat_density2d()做二维核密度估计，然后参考3.6成为三维曲面
+
+#3.13统计摘要####
+#统计摘要的方式也可以用来解决遮盖问题
+
+ggplot(diamonds,aes(color))+geom_bar()
+
+ggplot(diamonds,aes(color,price))+
+  geom_bar(stat="summary_bin",fun.y=mean)#实际上就是将price作为纵坐标
+
+ggplot(diamonds,aes(table,depth))+
+  geom_bin2d(binwidth=1,na.rm = TRUE)+
+  xlim(50,70)+
+  ylim(50,70)
+
+ggplot(diamonds,aes(table,depth,z=price))+
+  geom_raster(binwidth=1,stat="summary_2d",fun=mean,na.rm=TRUE)+
+  xlim(50,70)+ylim(50,70)
