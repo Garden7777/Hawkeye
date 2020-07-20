@@ -1,0 +1,237 @@
+#5，用图层构建图像####
+#5.1 简介####
+#ggplot2背后的关键思想之一是它允许你很容易在同一时间迭代，创建一个复杂的图形
+#每个图层可以有自己的数据集和图形属性映射，这也使得从多种数据源中创造复杂的图形变得可能
+#五个组件：数据，图形映射，几何对象，统计变换，位置调整
+
+#5.2 创建绘图对象####
+#到目前为止，每当ggplot（）函数创建一个图形，我们会立刻使用几何图像函数加一个图层
+
+#用默认数据集创建一个图形和图形属性映射
+p<- ggplot(mpg,aes(displ,hwy))
+p
+#在这里还不能看见什么东西，因此我们需要一个图层
+p+geom_point()
+#geom_point()函数是一个简写，在背后它被lay（）函数创建一个新图层
+p+layer(mapping=NULL,data=NULL,geom="point",stat="identity",position = "identity")
+#mapping 是一组图形映射，通过aes（）函数来设定并结合图形属性映射中使用画图的默认属性。如果是NULL则使用ggplot（）默认的映射设置
+#data是一个数据集，他会修改默认的数据集。大部分情况下该参数被省略掉（设置为NULL）
+#默认数据集将被ggplot（）函数调用，对数据的要求将在5.3节讲得更详细
+#geom几何对象的名字，用于绘制每个观测值。
+#几何对象有一些额外的参数
+#stat是统计变换的简称。一个统计变换展示。这对直方图和光滑曲线很有用，
+#为了保持原始数据的信息，使用“identity”的统计变换，
+#只需要设定统计变换和几何对象，因为每个几何对象都有一个默认的统计变换
+#每个统计变换都有一个默认的几何对象
+#大多数的统计变换通过额外的参数来指定统计变换的细节，你可以提供省略号参数
+#（某种情况下统计变换和几何参数会自动拆开）或称为stat_params的列表
+#position这个方法用来调整重叠的对象，如抖动，避开，堆叠等。
+
+#5.3数据####
+#每个图层都必须有一些数据和它相关，而且数据必须是整齐的
+#在每一层上的数据不需要是一样的，并且将多个数据集画到一个图中也是有用的
+#我们可以用mpg数据集进行测试，我们拟合一个loess模型从中生成预测值
+mod<- loess(hwy~displ,data=mpg)
+grid<- data.frame(displ=seq(min(mpg$displ),max(mpg$displ),length=50))
+grid$hwy<- predict(mod,newdata=grid)
+
+#接下来，我们将把与预测值相距较远的观测值分离出来
+std_resid<- resid(mod)/mod$s#这里表示残差除以残差的标准差
+outlier<- filter(mpg,abs(std_resid)>2)
+
+#我们已经生成了数据集开始对图像进行作图
+ggplot(mpg,aes(displ,hwy))+
+  geom_point()+
+  geom_line(data=grid,colour="blue",size=1.5)+
+  geom_text(data=outlier,aes(label=model))
+
+#5.4 图形属性映射####
+#aes函数用来将数据变量映射到图形或者aesthetic，aes（）有一些图形属性参数
+#aes(x=displ,y=hwy,colour=class)
+#不要在aes（）中涉及带有$的变量（例如diamonds$carat），它可以破坏代码，
+#以至于图不再包括之前需要的元素，并且，如果ggplot2改变行的顺序，这会和分面一样引起问题
+
+#5.4.1 在图和图层中指定图形属性####
+#在个别的图层中或者在某些两者的结合部分，图层属性映射可在最初的ggplot（）调用中提供
+#以下所有调用创建出相同效果的图：
+ggplot(mpg,aes(displ,hwy,colour=class))+
+  geom_point()
+ggplot(mpg,aes(displ,hwy))+
+  geom_point(aes(colour=class))
+ggplot(mpg,aes(displ))+
+  geom_point(aes(y=hwy,colour=class))
+ggplot(mpg)+
+  geom_point(aes(displ,hwy,colour=class))
+
+#如果你的图中仅有一个图层，那么对你指定图形属性的方式没有什么影响，但是，如果你要加一个额外图层的话就会有很大的区别。
+#下面的例子确实很有趣，但是它们的重点在于数据的不同方向：
+ggplot(mpg,aes(displ,hwy,colour=class))+
+  geom_point()+
+  geom_smooth(method = "lm",se=FALSE)+
+  theme(legend.position = "none")
+
+ggplot(mpg,aes(displ,hwy))+
+  geom_point(aes(colour=class))+
+  geom_smooth(method='lm',se=FALSE)+
+  theme(legend.position = "none")
+
+#5.4.2 设定和映射####
+#除了可以将一个图形属性映射到一个变量，也可以在图层的参数中设置为一个单一值
+#我们将图层属性映射到一个变量中（如，aes（colour=cut）），也可以把它
+#设定到一个常数中（如aes="red").如果你想用变量控制图形属性的话，将规则写入
+#aes（）中，如果想修改默认尺寸或颜色，将值写在aes（）的外面
+#下面的图用相似的代码写出，但是它们的输出稍微有些不同，第二图将颜色
+#映射（不是设置）到”darkblue“，实际上是先创建了一个包含值为”darkblue“
+#的变量，然后将colour映射到这个新的变量中。因为这个新变量是离散型的，但是
+#默认的颜色标度将用色轮上等间距的颜色，并且此处新变量只有一个值，这个颜色就是红色
+ggplot(mpg,aes(cty,hwy))+
+  geom_point(colour="darkblue")
+ggplot(mpg,aes(cty,hwy))+
+  geom_point(aes(colour="darkblue"))
+
+#第三个方法是映射到值，并覆盖默认的标度
+ggplot(mpg,aes(cty,hwy))+
+  geom_point(aes(color="darkblue"))+
+  scale_colour_identity()
+
+#有时将图形属性映射到常量是有用的，例如，如果你想用变化的参数展示图层，可以命名各个图层
+ggplot(mpg,aes(displ,hwy))+
+  geom_point()+
+  geom_smooth(aes(colour="loess"),method="loess",se=FALSE)+
+  geom_smooth(aes(colour="lm"),method="lm",se=FALSE)+
+  labs(colour="Method")
+
+#5.5 几何对象####
+#几何对象，又简写为geom，实行图层的实际渲染，控制你创建图形的类型
+#例如，用点类几何对象可以创建一个散点图，用线类几何对象可以创建一个线图
+#图元####
+#geom_blank 什么也不显示，最大的功用是使用数据调整坐标轴
+#geom_point 点
+#geom_path 路径
+#geom_ribbon 条带，带有垂直厚度的路径
+#geom_segment 线段，指定初始位置和结束位置
+#geom_rect 矩形
+#geom_polyon 填充多面体
+#geom_text 文本
+#单个变量####
+#离散####
+#geom_bar 展示离散变量的分布
+#连续#####
+#geom_histogram 计算封箱bin连续数据并用条带展示
+#geom_density 平滑密度估计
+#geom_dotplot 将大量的点放到点图中
+#geom_freqploy 计算封箱bin连续数据并用线图展示
+#两个变量#####
+#两个变量均为连续####
+#geom_point 散点图
+#geom_quantile 平滑的分位回归
+#geom_rug 边际须轴图
+#geom_smooth 最佳拟合平滑曲线
+#geom_text 文本标签
+#展示分布#####
+#geom_bin2d 计算封箱到矩形
+#geom_density 平滑的二维密度估计
+#geom_hex 计算封箱到六边形中
+#至少一个离散变量#####
+#geom_count 计算在不同位置点的个数
+#geom_jitter 随机抖动重叠的点
+#一个离散，一个连续####
+#geom_bar（stat="identity") 事先计算好的概要条形图
+#geom_boxplot 箱线图
+#geom_violin 展示每组值的密度
+#一个变量时时间序列，一个时连续的####
+#geom_area 面积图
+#geom_line 线图
+#geom_step 步阶图
+#展示不确定性####
+#geom_crossbar 带有中心点的垂直条形图
+#geom_errorbar 误差条形图
+#geom_linerange 垂线
+#geom_pointrange 带有中心的垂线
+#空间变量####
+#geom_map geom_polygon绘制地图数据的快速版本
+#三个变量#####
+#geom_contour 轮廓图
+#geom_tile 平铺矩形平面
+#geom_raster geom_tile平等尺寸平铺的快速版本
+
+#5.6统计变换####
+#统计变换简称为stat，是用来转换数据的，最经常的一个例子时平滑变换
+#可以用两种方式使用这些函数，或者添加stat（）函数并修改默认的几何对象，
+#或者添加geom（）函数并修改默认的统计变换
+
+ggplot(mpg,aes(trans,cty))+
+  geom_point()+
+  stat_summary(geom="point",fun.y="mean",colour="red",size=4)
+
+ggplot(mpg,aes(trans,cty))+
+ geom_point()+
+  geom_point(stat="summary",fun.y=mean,colour="red",size=4)
+#最好使用第二种形式，因为它能让你展示的概述，而不是原始数据
+
+#5.6.1 生成变量####
+#统计变换内部采用一种数据框的形式作为输入并且返回一个数据框，因为统计变换可增加新的变量到原始的数据集中，
+#将图形属性映射到这些新的变量也是有可能的
+#例如，使用stat_bin来生成直方图，产生下面的变量：
+#count，每个组观测值的数目
+#density，每个组观测值的密度（占整体的百分数/组宽）
+#x，每个组内观测值的密度（占整体的百分数/组宽）
+#这些生成变量可以直接被调用，例如，直方图默认将条形的高度赋值为观察测值的频数（count），
+#但是如果你喜欢更为传统的直方图，可以用密度density代替
+#为了参考像密度这样的生成变量，名字必须要用“..”围起来，这样可以防止原数据集中的变量和生成变量重名时造成混淆
+#比较两幅图的y轴
+ggplot(diamonds,aes(price))+
+  geom_histogram(binwidth = 500)
+ggplot(diamonds,aes(price))+
+  geom_histogram(aes(y=..density..),binwidth=500)
+
+#当我们想比较多个有不同尺寸的多个组的分布时，这个技术是相当有用的
+#例如，比较cut中的price的分布相当困难时，因为一些组别的数值很小。但是
+#如果我们标准化每个组到相同的面积的话，就会变得容易比较了
+ggplot(diamonds,aes(price,colour=cut))+
+  geom_freqpoly(binwidth=500)+
+  theme(legend.position = "none")
+ggplot(diamonds,aes(price,colour=cut))+
+  geom_freqpoly(aes(y=..density..),binwidth=500)+
+  theme(legend.position = "none")
+
+#5.7 位置调整####
+#所谓位置调整，是对该层中的元素的位置进行微调，下面三种调整主要是在条形图中
+#position_stack() 在彼此的顶部堆叠重叠的条形图（或面积）
+#position_fill()  将顶部始终放缩为1，堆叠重复的条形图
+#position_dodge()  将重叠的条形图并排摆放
+
+dplot<- ggplot(diamonds,aes(color,fill=cut))+
+          xlab(NULL)+ylab(NULL)+theme(legend.position = "none")
+#对于条形图而言，位置堆叠是默认设置
+#因此'geom_bar()'和'geom_bar(position="stack")'等价
+dplot+geom_bar()
+dplot+geom_bar(position="fill")
+dplot+geom_bar(position="dodge")
+
+#也有一种位置调整什么也不做，position_density（）
+#同一位置调整对于条形图来说并没有用，因为每个条形图隐藏了后面的条形图
+#但是有许多几何对象不需要调整，例如
+dplot+
+  geom_bar(position = "identity",alpha=1/2,colour="grey50")
+
+ggplot(diamonds,aes(color,colour=cut))+
+  geom_line(aes(group=cut),stat="count")+
+  xlab(NULL)+
+  ylab(NULL)+
+  theme(legend.position = "none")
+
+#position_nudge(), 按照固定的偏移来移动点
+#position_jitter(),在每个点上加一个小的随机扰动项
+#position_jitterdodge(),避开组内的点，然后添加少许随机扰动项
+#需要注意的是，将参数传递到位置调整和统计变换及几何对象是不同的。
+#与其在省略号中包含额外的参数不同的是，你可以创建一个位置调整的参数，在调用时提供额外的参数
+ggplot(mpg,aes(displ,hwy))+
+  geom_point(position = "jitter")
+ggplot(mpg,aes(displ,hwy))+
+  geom_point(position = position_jitter(width = 0.05,height = 0.5))
+
+#这十分啰嗦，所以geom_jitter提供了一个快捷的方式
+ggplot(mpg,aes(displ,hwy))+
+  geom_jitter(width = 0.05,height = 0.5)
+#连续数据往往不会完全重叠，即使重叠（对于高密度数据），也只需要作例如抖动的微调，这对于修复问题来说是杯水车薪。为此，位置调整对于离散型的数据来说是很有用的。
